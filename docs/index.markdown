@@ -3,5 +3,7 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: home
+title:
 ---
-hi im ryab
+hi im ryab  
+this is my website

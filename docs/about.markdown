@@ -12,3 +12,5 @@ permalink: /about/
 - goodreads
 - steam
 - github
+- discord
+- gmail
