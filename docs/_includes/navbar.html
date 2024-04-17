@@ -1,0 +1,76 @@
+<style>
+    .navbar {
+      position: fixed;
+      right: 5%;
+      top: 1.5%;
+      /* background-color: #dee8f6; */
+    }
+  
+    .navbar ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+  
+    .navbar li {
+      display: inline-block;
+    }
+  
+    .navbar li a {
+      color: black;
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+    }
+
+    .navbar li a:hover{
+      background-color: #dee8f6;
+      border-radius: 5px;
+    }
+  
+    .navbar ul ul {
+      position: absolute;
+      top: 100%;
+      display: none;
+    }
+  
+    .navbar ul ul li {
+      display: block;
+    }
+  
+    .navbar li:hover ul {
+      display: block;
+    }
+  
+    .navbar ul ul li a {
+      background-color: #dee8f6;
+      display:relative  ;
+    }
+  
+    .navbar ul ul li a:hover {
+        filter: brightness(95%);
+    }
+    
+    .current {
+      background-color: #dee8f6;
+    }
+  </style>
+  
+  <nav class="navbar">
+    <ul>  
+      {% for item in site.data.navigation.pages %}
+      <li>
+        {% if item.subpages[0] %}
+          <a {% if page.url == item.link %}class="current"{% endif %}>{{ item.name }}</a>
+          <ul>
+            {% for entry in item.subpages %}
+            <li><a href="{{ entry.link }}">{{ entry.name }}</a></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <a href="{{ item.link }}" {% if page.url == item.link %}class="current"{% endif %}>{{ item.name }}</a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
