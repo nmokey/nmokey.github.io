@@ -14,4 +14,4 @@ this is my website
    <button type="submit">Download!</button>
 </form>
 
-![Image](./assets/images/profile.png) {width = 5%}
+![Image](./assets/images/profile.png){: width="25%"}
