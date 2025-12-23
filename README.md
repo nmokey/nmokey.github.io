@@ -16,6 +16,7 @@ A sleek, modern personal portfolio website featuring an interactive physics-insp
 - [Theme System](#theme-system)
 - [File Structure](#file-structure)
 - [Deployment](#deployment)
+- [SEO Optimization](#seo-optimization)
 - [Customization Guide](#customization-guide)
 
 ---
@@ -548,6 +549,8 @@ docs/
 ├── thoughts.html           # Thoughts/blog
 ├── 404.html                # Custom 404 page
 ├── CNAME                   # Custom domain configuration
+├── robots.txt              # SEO: Search engine crawler guidance
+├── sitemap.xml             # SEO: Site structure for search engines
 ├── content/                 # Markdown content files (editing source)
 │   ├── index.md            # Homepage content
 │   ├── about.md             # About page content
@@ -652,7 +655,134 @@ docs/
 - All HTML files in `/docs`
 - All assets in `/docs/assets/`
 - `CNAME` file for custom domain
+- `robots.txt` and `sitemap.xml` for SEO
 - No build artifacts needed
+
+---
+
+## SEO Optimization
+
+The site is optimized for search engines to help recruiters and friends find Ryan Zheng easily, especially when searching with keywords like "UCLA", "physics", "Scale AI", etc.
+
+### Implemented SEO Features
+
+#### 1. Enhanced Meta Tags
+- **Title Tag**: "Ryan Zheng - Physics Student at UCLA | AI Researcher | Scale AI Intern"
+  - Includes key identifiers: name, school (UCLA), field (Physics), role (AI Researcher), company (Scale AI)
+- **Meta Description**: Comprehensive description with keywords (UCLA, Physics, Data Science, Scale AI, ACM AI, AI researcher, machine learning)
+- **Keywords Meta Tag**: Comprehensive list of relevant keywords
+- **Author Tag**: Identifies content creator
+- **Robots Meta**: Explicitly allows indexing
+
+#### 2. Open Graph Tags (Social Media)
+- Enables rich previews when sharing on Facebook, LinkedIn, etc.
+- Includes: title, description, image, URL
+- Helps with professional networking and sharing
+
+#### 3. Twitter Card Tags
+- Optimized previews for Twitter/X
+- Large image card format for better visibility
+
+#### 4. Structured Data (JSON-LD)
+- **Person Schema**: Tells search engines who Ryan is
+  - Name, job title, employer (Scale AI)
+  - Education (UCLA)
+  - Skills and expertise areas
+  - Social media profiles (GitHub, LinkedIn, Kaggle)
+  - Organization memberships (ACM AI @ UCLA)
+- Helps Google create rich snippets and knowledge panels
+- Located in `<head>` section of `index.html`
+
+#### 5. Canonical URLs
+- Prevents duplicate content issues
+- Ensures search engines know the primary URL
+
+#### 6. Enhanced Alt Text
+- Profile image includes descriptive alt text with keywords
+- Helps with image search and accessibility
+
+#### 7. robots.txt
+- Guides search engine crawlers
+- Points to sitemap for efficient crawling
+- Located at `docs/robots.txt`
+
+#### 8. XML Sitemap
+- Lists all important pages with priorities
+- Helps search engines discover and index all pages
+- Includes lastmod dates for freshness
+- Located at `docs/sitemap.xml`
+
+### Key Search Terms Optimized
+
+The site is optimized for searches like:
+- "Ryan Zheng UCLA"
+- "Ryan Zheng physics"
+- "Ryan Zheng Scale AI"
+- "Ryan Zheng ACM AI"
+- "UCLA physics student AI"
+- "Scale AI intern UCLA"
+- "Ryan Zheng machine learning"
+- "Ryan Zheng PyTorch"
+
+### Natural Keyword Placement
+
+Keywords appear naturally in:
+- Page titles
+- Meta descriptions
+- Structured data (JSON-LD)
+- Content headings (H1, H2)
+- Alt text
+- URL structure
+
+### Updating SEO Elements
+
+**When updating personal information (job, school, etc.), update these locations:**
+
+1. **Meta Tags** (in `<head>` of `index.html`):
+   - `<title>` tag
+   - `<meta name="description">`
+   - `<meta name="keywords">`
+   - Open Graph tags (`og:title`, `og:description`)
+   - Twitter Card tags
+
+2. **Structured Data** (JSON-LD in `<head>` of `index.html`):
+   - `jobTitle`
+   - `worksFor.name` (employer)
+   - `alumniOf.name` (school)
+   - `knowsAbout` array (skills)
+   - `memberOf.name` (organizations)
+   - `sameAs` array (social media links)
+
+3. **Alt Text** (on profile image):
+   - Update `alt` attribute with current keywords
+
+4. **Sitemap** (`docs/sitemap.xml`):
+   - Update `lastmod` dates when pages change
+   - Add new pages as they're created
+
+### Testing SEO
+
+Use these tools to verify SEO implementation:
+- [Google Rich Results Test](https://search.google.com/test/rich-results) - Test structured data
+- [Schema.org Validator](https://validator.schema.org/) - Validate JSON-LD
+- [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) - Test Open Graph tags
+- [Twitter Card Validator](https://cards-dev.twitter.com/validator) - Test Twitter Cards
+
+### Next Steps (Optional)
+
+1. **Google Search Console**: Submit sitemap and monitor search performance
+2. **LinkedIn Profile**: Ensure it links back to nmokey.com
+3. **GitHub Profile**: Add link to website in bio
+4. **Regular Content Updates**: Fresh content helps SEO
+5. **Backlinks**: Get other sites to link to your site (LinkedIn, GitHub, etc.)
+
+### Notes for Future Agents
+
+- The structured data uses Schema.org Person type, which is recognized by Google
+- All keywords should be naturally integrated - avoid keyword stuffing
+- When updating personal info, ensure consistency across meta tags, structured data, and content
+- Other pages (about, projects, etc.) can be updated similarly for consistency
+- The site maintains its minimalist design while being SEO-friendly
 
 ---
 
