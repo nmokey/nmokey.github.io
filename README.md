@@ -192,6 +192,7 @@ Located in `docs/assets/css/main.css`, the design system uses CSS custom propert
 - Profile image with hover scale effect
 - Responsive font sizing with `clamp()`
 - **Hero buttons**: No underline animations (clean button styling)
+- **Full viewport height**: Hero section uses `min-height: 100vh` to hide content below on initial load
 
 ### 2. Navigation Menu (Hamburger)
 
@@ -362,7 +363,59 @@ backdrop-filter: blur(4px) saturate(180%);
 **Customization**:
 Edit the `roles` array in `main.js` to change the cycling text. Adjust `typeSpeed` (50ms) and `deleteSpeed` (30ms) for different speeds.
 
-### 8. Content Pages
+### 8. Page Navigation (Right-Side Navigation)
+
+**Location**: `docs/assets/js/page-nav.js`, `docs/assets/css/components.css`
+
+**Design**:
+- Fixed position in top-right corner, below hamburger menu and theme toggle
+- Right-justified navigation with vertical line indicator
+- Only displays Level 1 (H1) headers from page content
+- Fades in when user scrolls down, fades out when at top of page
+- Active section text expands with smooth animation
+- Minimal spacing, compact design
+
+**Implementation**:
+- JavaScript: `PageNavigation` class in `page-nav.js`
+- CSS: `.page-nav`, `.page-nav-list`, `.page-nav-link` classes
+- **Robust Design**: Works on any page with H1 headings, regardless of HTML structure
+- **Auto-ID Generation**: Automatically creates IDs for headings that don't have them
+- **Scroll Tracking**: Uses Intersection Observer and scroll listeners for accurate section detection
+
+**Key Features**:
+- **Fade In/Out**: Navigation fades in when scroll > 100px, fades out at top
+- **Level 1 Only**: Only shows H1 headings (subsections ignored)
+- **Active Highlighting**: Current section text expands and changes color
+- **Smooth Scrolling**: Click navigation items to smoothly scroll to sections
+- **"Top" Link**: Includes a "top" link that scrolls to the top of the page
+- **Theme Aware**: Colors adapt to dark/light mode
+- **Responsive**: Hidden on mobile devices (< 768px)
+
+**Technical Details**:
+- Finds H1 elements in common content containers (`main`, `.page-content`, `.content`, `article`) or falls back to `body`
+- Skips headings in hero sections, navigation menus, and headers
+- Generates URL-friendly IDs using slug conversion (lowercase, hyphens)
+- Uses both section elements and heading elements for intersection observation
+- Smooth transitions with `cubic-bezier` easing
+
+**Usage**:
+Add `<nav class="page-nav" id="pageNav" aria-label="Page navigation"></nav>` to any page and include `page-nav.js` script. The component automatically finds and creates navigation for all H1 headings.
+
+### 9. Google Analytics
+
+**Location**: All HTML pages (`<head>` section)
+
+**Implementation**:
+- Google Analytics (gtag.js) tracking code included in all HTML pages
+- Tracking ID: `G-NK15EEMEB2`
+- Async script loading for performance
+- Automatically tracks page views and user interactions
+
+**Code Location**:
+- Inline script in `<head>` of all HTML files
+- Also available in `docs/analytics.html` for reference
+
+### 10. Content Pages
 
 **Location**: `docs/about.html`, `docs/art.html`, etc.
 
@@ -452,6 +505,7 @@ docs/
 │   │   ├── config.js       # Site configuration (navigation, roles, footer)
 │   │   ├── components.js   # Navigation, footer, theme toggle, home button
 │   │   ├── main.js         # Cycling subtitle, smooth scrolling
+│   │   ├── page-nav.js     # Page navigation component (right-side nav)
 │   │   └── vector-field.js # Vector field visualization
 │   ├── images/
 │   │   ├── art/            # Art portfolio images
@@ -508,6 +562,15 @@ docs/
 - Field calculations (inverse square law)
 - Color mapping (theme-aware)
 - All methods documented with JSDoc
+
+**`docs/assets/js/page-nav.js`**:
+- `PageNavigation` class - Right-side page navigation component
+- Automatically finds H1 headings on any page
+- Scroll tracking with Intersection Observer
+- Fade in/out based on scroll position
+- Active section highlighting with expanding text
+- Auto-ID generation for headings without IDs
+- Full JSDoc documentation
 
 ---
 
