@@ -19,15 +19,21 @@
   </script>
 </head>
 <body>
-  <header class="site-header" role="banner">
-    <div class="wrapper">
-      <a class="site-title" href="index.html">ryan zheng</a>
-      <nav class="navbar" id="navbar"></nav>
+  <!-- Hamburger Menu Toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <div class="menu-icon">
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
-  </header>
+    <!-- Navigation Menu - Floating Dropdown -->
+    <nav class="nav-menu" id="navMenu" role="navigation">
+      <!-- Navigation will be inserted here by JavaScript -->
+    </nav>
+  </button>
 
   <main class="page-content" aria-label="Content">
-    <div class="wrapper">
+    <div class="container-narrow">
       <h1>thoughts</h1>
       <p>honestly this page will be a mix of stories and thoughts that i have and want to write about. the main purpose of these are to have a space for myself to just write things, but if you care to read them that's nice too.</p>
     </div>
@@ -35,8 +41,10 @@
 
   <footer class="site-footer" id="footer"></footer>
 
+  <script src="assets/js/config.js"></script>
   <script src="assets/js/components.js"></script>
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/vector-field.js"></script>
 </body>
 </html>
 

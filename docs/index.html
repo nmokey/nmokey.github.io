@@ -19,32 +19,40 @@
   </script>
 </head>
 <body>
-  <header class="site-header" role="banner">
-    <div class="wrapper">
-      <a class="site-title" href="index.html">ryan zheng</a>
-      <nav class="navbar" id="navbar"></nav>
+  <!-- Hamburger Menu Toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <div class="menu-icon">
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
-  </header>
+    <!-- Navigation Menu - Floating Dropdown -->
+    <nav class="nav-menu" id="navMenu" role="navigation">
+      <!-- Navigation will be inserted here by JavaScript -->
+    </nav>
+  </button>
 
-  <main class="page-content" aria-label="Content">
-    <div class="wrapper">
-      <h1>hi im ryab</h1>
-      <p>this is my website</p>
-      
-      <a href="assets/resume.pdf" download="ryan_zheng_resume" target="_blank">Download Resume</a>
-
-      <form method="get" action="assets/resume.pdf">
-        <button type="submit">Download!</button>
-      </form>
-
-      <img src="assets/images/profile.png" alt="Profile" style="width: 25%;">
-    </div>
+  <!-- Main Content -->
+  <main class="page-content">
+    <section class="hero">
+      <img src="assets/images/profile.png" alt="Ryan Zheng" class="hero-image">
+      <h1 class="hero-name">ryan zheng</h1>
+      <p class="hero-subtitle">
+        hi! i'm ryan, a <br>
+        <span class="cycling-text" id="cyclingText"></span>
+      </p>
+      <div class="hero-actions">
+        <a href="assets/resume.pdf" download="ryan_zheng_resume" target="_blank" class="btn">resume</a>
+        <a href="about.html" class="btn btn-secondary">about</a>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer" id="footer"></footer>
 
+  <script src="assets/js/config.js"></script>
   <script src="assets/js/components.js"></script>
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/vector-field.js"></script>
 </body>
 </html>
-

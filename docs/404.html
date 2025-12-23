@@ -7,6 +7,7 @@
   <title>404 - ryan zheng</title>
   <meta name="description" content="this site is a work in progress">
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
   <link rel="icon" type="image/x-icon" href="assets/favicons/favicon.ico">
   <style>
     * {
@@ -56,6 +57,19 @@
   </style>
 </head>
 <body>
+  <!-- Hamburger Menu Toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <div class="menu-icon">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <!-- Navigation Menu - Floating Dropdown -->
+    <nav class="nav-menu" id="navMenu" role="navigation">
+      <!-- Navigation will be inserted here by JavaScript -->
+    </nav>
+  </button>
+
   <main>
       <img src="assets/images/caution.png" alt="404" title="be so cyber security (BSCS)"></img>
 
@@ -71,6 +85,13 @@
       <a class="button" href="index.html">Back to safety</a>
 
   </main>
+
+  <footer class="site-footer" id="footer"></footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/vector-field.js"></script>
 </body>
 </html>
 
