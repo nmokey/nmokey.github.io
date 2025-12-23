@@ -519,7 +519,7 @@
 .page-content h1 {
   font-size: var(--text-4xl);
   margin-bottom: var(--space-8);
-  text-align: center;
+  text-align: left;
 }
 
 .page-content h2 {
@@ -706,14 +706,36 @@
 }
 
 .content-section h1,
+.content-section h2,
 .content-subsection h2 {
   margin-bottom: var(--space-6);
   color: var(--color-text);
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.content-section h2 .date-range,
+.content-subsection h2 .date-range {
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  color: var(--color-text-light);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .content-subsection {
-  margin-left: var(--space-6);
+  margin-left: 0;
   margin-top: var(--space-8);
+}
+
+/* Publications hanging indent */
+#publications p {
+  text-indent: -2em;
+  padding-left: 2em;
+  margin-bottom: var(--space-4);
 }
 
 /* ============================================

@@ -30,6 +30,57 @@ This is a pure HTML/CSS/JavaScript website (no build process) that showcases a p
 - **Smooth Animations**: Subtle, responsive animations throughout
 - **Frosted Glass Effects**: Translucent navigation and footer with backdrop blur
 - **Fully Responsive**: Mobile-first design that works on all screen sizes
+- **Markdown Content System**: Easy content editing via markdown files with agent-assisted HTML updates
+
+---
+
+## Content Management System
+
+### Markdown-Based Content Editing
+
+The site uses a **markdown-first content workflow** that makes it easy to edit page content without dealing with HTML structure:
+
+**How It Works:**
+1. **Content Source**: Each HTML page has a corresponding markdown file in `/docs/content/`
+   - `index.html` ↔ `content/index.md`
+   - `about.html` ↔ `content/about.md`
+   - `art.html` ↔ `content/art.md`
+   - etc.
+
+2. **Editing Workflow**:
+   - Edit content in markdown files (`.md`) - easy to read and write
+   - Markdown files serve as a "whiteboard" for content updates
+   - When ready, an AI agent (like Cursor's AI) reflects changes from markdown to HTML
+   - HTML files remain the source of truth for the live site
+
+3. **Benefits**:
+   - **Easy Editing**: Write content in markdown instead of HTML
+   - **Clean Separation**: Content (markdown) separate from structure (HTML)
+   - **Version Control**: Markdown changes are easy to review in git
+   - **No Build Process**: Direct HTML deployment, markdown is just for editing convenience
+
+**File Structure:**
+```
+docs/
+├── content/              # Markdown content files (editing source)
+│   ├── index.md
+│   ├── about.md
+│   ├── art.md
+│   ├── music.md
+│   ├── projects.md
+│   └── thoughts.md
+├── index.html            # Live HTML files (deployed)
+├── about.html
+├── art.html
+└── ...
+```
+
+**Usage:**
+- Edit markdown files in `/docs/content/` to update page content
+- Request an AI agent to sync changes from markdown to corresponding HTML files
+- HTML files are what GitHub Pages serves - markdown is not deployed
+
+**Note**: The markdown files are for content editing only. The HTML files contain the full page structure (head, navigation, footer, scripts) and are what actually gets deployed. When updating content, edit the markdown, then have an agent update the corresponding HTML file's content section.
 
 ---
 
@@ -497,6 +548,13 @@ docs/
 ├── thoughts.html           # Thoughts/blog
 ├── 404.html                # Custom 404 page
 ├── CNAME                   # Custom domain configuration
+├── content/                 # Markdown content files (editing source)
+│   ├── index.md            # Homepage content
+│   ├── about.md             # About page content
+│   ├── art.md               # Art page content
+│   ├── music.md             # Music page content
+│   ├── projects.md          # Projects page content
+│   └── thoughts.md          # Thoughts page content
 ├── assets/
 │   ├── css/
 │   │   ├── main.css        # Design system, base styles, theme toggle
@@ -652,10 +710,10 @@ const cyclingRoles = [
 
 ### Adding New Pages
 
-1. Create new HTML file in `/docs/`
-2. Copy structure from existing page
-3. Add navigation link in `docs/assets/js/components.js` → `navigationData`
-4. Update content
+1. Create new HTML file in `/docs/` (copy structure from existing page)
+2. Create corresponding markdown file in `/docs/content/` (e.g., `newpage.md`)
+3. Add navigation link in `docs/assets/js/config.js` → `navigationData`
+4. Edit content in markdown file, then sync to HTML using an AI agent
 
 ### Modifying Navigation
 
@@ -672,6 +730,20 @@ const navigationData = {
   ]
 };
 ```
+
+### Updating Page Content
+
+**Recommended Workflow:**
+1. Edit the markdown file in `/docs/content/` (e.g., `about.md`)
+2. Request an AI agent to sync changes from markdown to the corresponding HTML file
+3. The agent will update only the content section, preserving HTML structure (head, navigation, scripts, etc.)
+
+**Example:**
+- Edit `docs/content/about.md` to update the about page content
+- Ask: "Update about.html to reflect the changes in content/about.md"
+- The agent will update the `<main>` content section while keeping all HTML structure intact
+
+**Note**: HTML files are the source of truth for deployment. Markdown files are editing conveniences and are not deployed.
 
 ---
 
