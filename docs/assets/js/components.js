@@ -24,15 +24,19 @@ function getCurrentPath() {
  */
 function isCurrentPage(link) {
   const currentPath = getCurrentPath();
-  const fileName = currentPath.split('/').pop() || 'index.html';
+  const pathSegments = currentPath.split('/').filter(segment => segment);
+  const lastSegment = pathSegments[pathSegments.length - 1] || '';
   
   // Handle root/index
-  if (fileName === '' || fileName === 'index.html' || currentPath.endsWith('/')) {
-    return !link || link === 'index.html' || link === '';
+  if (currentPath === '/' || currentPath === '' || lastSegment === '' || lastSegment === 'index.html') {
+    return !link || link === '' || link === '/' || link === 'index.html';
   }
   
-  // Compare filenames
-  return fileName === link || currentPath.endsWith(link);
+  // Compare filenames (with or without .html extension)
+  const cleanLink = link.replace(/\.html$/, '');
+  const cleanLastSegment = lastSegment.replace(/\.html$/, '');
+  
+  return cleanLastSegment === cleanLink;
 }
 
 /**

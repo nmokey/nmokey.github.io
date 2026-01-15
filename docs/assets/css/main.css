@@ -137,6 +137,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  cursor: none;
 }
 
 html {
@@ -159,6 +160,7 @@ body {
   position: relative;
   min-height: 100vh;
   transition: background-color var(--transition-base), color var(--transition-base);
+  cursor: none;
 }
 
 /* ============================================
@@ -188,6 +190,7 @@ a {
   color: var(--color-primary);
   text-decoration: none;
   transition: color var(--transition-base);
+  cursor: none;
 }
 
 a:hover {
@@ -251,7 +254,7 @@ img {
   -webkit-backdrop-filter: blur(4px) saturate(180%);
   border: 2px solid rgba(255, 255, 255, 0.1); /* Subtle border */
   border-radius: var(--radius);
-  cursor: pointer;
+  cursor: none;
   transition: all var(--transition-base);
   text-decoration: none;
   position: relative;
@@ -355,7 +358,7 @@ img {
   width: 56px;
   height: 56px;
   z-index: calc(var(--z-menu) + 5);
-  cursor: pointer;
+  cursor: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -418,7 +421,7 @@ img {
   width: 56px;
   height: 56px;
   z-index: calc(var(--z-menu) + 5);
-  cursor: pointer;
+  cursor: none;
   display: flex;
   align-items: center;
   justify-content: center;
