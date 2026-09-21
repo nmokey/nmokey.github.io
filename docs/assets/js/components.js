@@ -41,7 +41,8 @@ function isCurrentPage(link) {
 
 /**
  * Renders the navigation menu dynamically from navigationData
- * Creates menu items with submenus and highlights current page
+ * Creates menu items with submenus and highlights current page.
+ * Submenus stay expanded until the pointer leaves the whole menu.
  * 
  * @returns {void}
  */
@@ -60,6 +61,17 @@ function renderNavigation() {
       a.textContent = item.name;
       a.href = '#';
       a.classList.add('submenu-toggle');
+      a.setAttribute('aria-expanded', 'false');
+
+      const expandSubmenu = () => {
+        li.classList.add('submenu-expanded');
+        a.setAttribute('aria-expanded', 'true');
+      };
+      li.addEventListener('mouseenter', expandSubmenu);
+      a.addEventListener('click', (event) => {
+        event.preventDefault();
+        expandSubmenu();
+      });
       
       const subUl = document.createElement('ul');
       subUl.classList.add('submenu');
@@ -92,6 +104,17 @@ function renderNavigation() {
   });
   
   navMenu.appendChild(ul);
+
+  // The trigger contains the dropdown, so leaving a row does not reset it.
+  const menuToggle = navMenu.closest('.menu-toggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('mouseleave', () => {
+      navMenu.querySelectorAll('.submenu-toggle').forEach(toggle => {
+        toggle.parentElement.classList.remove('submenu-expanded');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
 }
 
 /**
