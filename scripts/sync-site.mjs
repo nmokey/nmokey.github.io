@@ -1,19 +1,36 @@
-// Page content lives in docs/*.html. Only security metadata and the sitemap are generated.
-import { readFile, writeFile, readdir } from 'node:fs/promises';
+// Page content lives in docs/*.html and posts/*.md. Generated: post pages, the thoughts
+// post list, security metadata, the sitemap and the feed. --drafts includes draft posts.
+import { readFile, writeFile, readdir, mkdir, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { loadPosts, renderPostList, renderPostPage, renderFeed } from './posts.mjs';
 
 const check = process.argv.includes('--check');
 const origin = 'https://www.nmokey.com';
-const pages = (await readdir('docs')).filter(name => name.endsWith('.html')).sort();
+const posts = await loadPosts('posts', { drafts: process.argv.includes('--drafts') });
+const pages = new Map();
+for (const name of (await readdir('docs')).filter(name => name.endsWith('.html')).sort()) {
+  pages.set(name, await readFile(`docs/${name}`, 'utf8'));
+}
+for (const post of posts) pages.set(`thoughts/${post.slug}.html`, renderPostPage(post, origin));
+const list = /<!-- Generated post list -->[\s\S]*?<!-- End generated post list -->/;
+if (!list.test(pages.get('thoughts.html'))) throw new Error('docs/thoughts.html: missing generated post list markers');
+pages.set('thoughts.html', pages.get('thoughts.html').replace(list, () =>
+  `<!-- Generated post list -->\n${renderPostList(posts)}\n      <!-- End generated post list -->`));
+
 let stale = false;
 async function output(path, content) {
   const current = await readFile(path, 'utf8').catch(() => '');
   if (current === content) return;
-  if (check) { console.error(`${path}: generated metadata is stale; run npm run sync`); stale = true; }
+  if (check) { console.error(`${path}: generated output is stale; run npm run sync`); stale = true; }
   else await writeFile(path, content);
 }
-for (const name of pages) {
-  let html = await readFile(`docs/${name}`, 'utf8');
+await mkdir('docs/thoughts', { recursive: true });
+for (const name of await readdir('docs/thoughts')) {
+  if (!name.endsWith('.html') || pages.has(`thoughts/${name}`)) continue;
+  if (check) { console.error(`docs/thoughts/${name}: no matching published post; run npm run sync`); stale = true; }
+  else await unlink(`docs/thoughts/${name}`);
+}
+for (let [name, html] of pages) {
   const hashes = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
     .map(match => `'sha256-${createHash('sha256').update(match[1]).digest('base64')}'`);
   const policy = [
@@ -40,7 +57,8 @@ for (const name of pages) {
   html = html.replace(/(<meta charset="utf-8">)\n?/, `$1${metadata}`);
   await output(`docs/${name}`, html);
 }
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.filter(name => name !== '404.html').map(name => `  <url><loc>${origin}/${name === 'index.html' ? '' : name}</loc></url>`).join('\n')}\n</urlset>\n`;
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...pages.keys()].filter(name => name !== '404.html').map(name => `  <url><loc>${origin}/${name === 'index.html' ? '' : name}</loc></url>`).join('\n')}\n</urlset>\n`;
 await output('docs/sitemap.xml', sitemap);
+await output('docs/feed.xml', renderFeed(posts, origin));
 await output('docs/robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`);
 if (stale) process.exitCode = 1;

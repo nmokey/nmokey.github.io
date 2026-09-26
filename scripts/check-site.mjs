@@ -6,7 +6,10 @@ import { JSDOM } from 'jsdom';
 import { createHash } from 'node:crypto';
 
 const root = resolve('docs');
-const pages = (await readdir(root)).filter(name => name.endsWith('.html'));
+const pages = [
+  ...(await readdir(root)).filter(name => name.endsWith('.html')),
+  ...(await readdir(resolve(root, 'thoughts')).catch(() => [])).filter(name => name.endsWith('.html')).map(name => `thoughts/${name}`)
+];
 const validator = new HtmlValidate({ extends: ['html-validate:recommended'] });
 const failures = [];
 for (const name of pages) {

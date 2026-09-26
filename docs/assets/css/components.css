@@ -578,6 +578,107 @@
 }
 
 /* ============================================
+   THOUGHTS - Post list and post pages
+   ============================================ */
+
+.post-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: var(--space-12);
+}
+
+.post-list li {
+  padding-left: 0;
+  margin-bottom: var(--space-8);
+}
+
+.post-list li:hover {
+  padding-left: 0;
+  color: inherit;
+}
+
+.post-list a {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+}
+
+.post-list time,
+.post-meta {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-text-lighter);
+}
+
+.post-list p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-light);
+}
+
+.post-list-empty {
+  margin-top: var(--space-12);
+  color: var(--color-text-lighter);
+}
+
+.post-back {
+  font-size: var(--text-sm);
+}
+
+.page-content .post h1 {
+  margin-bottom: var(--space-2);
+}
+
+.post-meta {
+  margin-bottom: var(--space-12);
+}
+
+.post p,
+.post li {
+  line-height: 1.75;
+}
+
+.post li:hover {
+  padding-left: var(--space-2);
+  color: inherit;
+}
+
+.post blockquote {
+  margin: var(--space-6) 0;
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--color-border);
+}
+
+.post blockquote p {
+  color: var(--color-text-light);
+}
+
+.post code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+}
+
+.post pre {
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-alt);
+}
+
+.post pre code {
+  padding: 0;
+  background: none;
+}
+
+.post hr {
+  margin: var(--space-12) 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ============================================
    PAGE NAVIGATION - Right Side Navigation
    ============================================ */
 

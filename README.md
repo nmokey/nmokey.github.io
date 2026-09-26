@@ -35,53 +35,40 @@ This is a pure HTML/CSS/JavaScript website (no build process) that showcases a p
 
 ---
 
-## Content Management System
+## Content and Tooling
 
-### Markdown-Based Content Editing
+Pages are edited directly in `docs/*.html`. Blog posts on the thoughts page are written in Markdown.
 
-The site uses a **markdown-first content workflow** that makes it easy to edit page content without dealing with HTML structure:
+### Writing a post
 
-**How It Works:**
-1. **Content Source**: Each HTML page has a corresponding markdown file in `/docs/content/`
-   - `index.html` ↔ `content/index.md`
-   - `about.html` ↔ `content/about.md`
-   - `art.html` ↔ `content/art.md`
-   - etc.
+1. Add `posts/YYYY-MM-DD-some-title.md`. The file name (minus the date) becomes the URL: `/thoughts/some-title.html`.
+2. Start it with front matter:
+   ```markdown
+   ---
+   title: some title
+   date: 2026-09-28
+   description: one line shown on the thoughts page, in search results and in the feed
+   draft: true
+   ---
+   ```
+3. Write the body in Markdown. The title is the page heading, so use `##` for sections. Put images in `docs/assets/images/thoughts/` and reference them as `/assets/images/thoughts/photo.jpg` with alt text.
+4. Preview with `npm run drafts` and `npm run preview` (http://127.0.0.1:8765).
+5. To publish, remove `draft: true` (or set it to `false`), run `npm run sync`, and commit both the Markdown and the generated files.
 
-2. **Editing Workflow**:
-   - Edit content in markdown files (`.md`) - easy to read and write
-   - Markdown files serve as a "whiteboard" for content updates
-   - When ready, an AI agent (like Cursor's AI) reflects changes from markdown to HTML
-   - HTML files remain the source of truth for the live site
+The site's Content Security Policy blocks inline scripts and `style=""` attributes, so keep posts to plain Markdown. YouTube embeds are allowed.
 
-3. **Benefits**:
-   - **Easy Editing**: Write content in markdown instead of HTML
-   - **Clean Separation**: Content (markdown) separate from structure (HTML)
-   - **Version Control**: Markdown changes are easy to review in git
-   - **No Build Process**: Direct HTML deployment, markdown is just for editing convenience
+### Commands
 
-**File Structure:**
-```
-docs/
-├── content/              # Markdown content files (editing source)
-│   ├── index.md
-│   ├── about.md
-│   ├── art.md
-│   ├── music.md
-│   ├── projects.md
-│   └── thoughts.md
-├── index.html            # Live HTML files (deployed)
-├── about.html
-├── art.html
-└── ...
-```
+| Command | What it does |
+| --- | --- |
+| `npm run sync` | Generates post pages, the thoughts list, `feed.xml`, `sitemap.xml`, CSP/canonical metadata and asset version stamps |
+| `npm run drafts` | Same, including draft posts (never commit this output; `npm run check` rejects it) |
+| `npm run check` | Fails if generated files are stale, then validates HTML, local links, JavaScript and asset sizes |
+| `npm test` | Unit tests (menu, theme, posts) |
+| `npm run test:browser` | Playwright tests (first run `npx playwright install chromium`) |
+| `npm run preview` | Local server for `docs/` |
 
-**Usage:**
-- Edit markdown files in `/docs/content/` to update page content
-- Request an AI agent to sync changes from markdown to corresponding HTML files
-- HTML files are what GitHub Pages serves - markdown is not deployed
-
-**Note**: The markdown files are for content editing only. The HTML files contain the full page structure (head, navigation, footer, scripts) and are what actually gets deployed. When updating content, edit the markdown, then have an agent update the corresponding HTML file's content section.
+GitHub Actions runs all checks on pull requests and pushes, and deploys `docs/` to GitHub Pages from `main`.
 
 ---
 
