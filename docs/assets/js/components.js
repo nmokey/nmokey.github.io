@@ -33,7 +33,7 @@ function isCurrentPage(link) {
   }
   
   // Compare filenames (with or without .html extension)
-  const cleanLink = link.replace(/\.html$/, '');
+  const cleanLink = link.split('/').pop().replace(/\.html$/, '');
   const cleanLastSegment = lastSegment.replace(/\.html$/, '');
   
   return cleanLastSegment === cleanLink;
@@ -47,74 +47,108 @@ function isCurrentPage(link) {
  * @returns {void}
  */
 function renderNavigation() {
-  const navMenu = document.getElementById('navMenu');
-  if (!navMenu) return;
+  const container = document.getElementById('siteMenu');
+  const nav = document.getElementById('navMenu');
+  const trigger = document.getElementById('menuToggle');
+  if (!container || !nav || !trigger) return;
 
-  const ul = document.createElement('ul');
-  
-  navigationData.pages.forEach(item => {
-    const li = document.createElement('li');
-    
-    if (item.subpages && item.subpages.length > 0) {
-      // Create dropdown menu
-      const a = document.createElement('a');
-      a.textContent = item.name;
-      a.href = '#';
-      a.classList.add('submenu-toggle');
-      a.setAttribute('aria-expanded', 'false');
-
-      const expandSubmenu = () => {
-        li.classList.add('submenu-expanded');
-        a.setAttribute('aria-expanded', 'true');
+  const list = document.createElement('ul');
+  navigationData.pages.forEach((item, index) => {
+    const row = document.createElement('li');
+    if (item.subpages) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'submenu-toggle';
+      button.textContent = item.name;
+      button.setAttribute('aria-expanded', 'false');
+      button.setAttribute('aria-controls', `submenu-${index}`);
+      const submenu = document.createElement('ul');
+      submenu.className = 'submenu';
+      submenu.id = `submenu-${index}`;
+      submenu.inert = true;
+      const expand = () => {
+        row.classList.add('submenu-expanded');
+        button.setAttribute('aria-expanded', 'true');
+        submenu.inert = false;
       };
-      li.addEventListener('mouseenter', expandSubmenu);
-      a.addEventListener('click', (event) => {
-        event.preventDefault();
-        expandSubmenu();
+      row.addEventListener('pointerenter', event => {
+        if (event.pointerType === 'mouse') expand();
       });
-      
-      const subUl = document.createElement('ul');
-      subUl.classList.add('submenu');
-      item.subpages.forEach(subpage => {
-        const subLi = document.createElement('li');
-        const subA = document.createElement('a');
-        subA.textContent = subpage.name;
-        subA.href = subpage.link;
-        if (isCurrentPage(subpage.link)) {
-          subA.classList.add('current');
-        }
-        subLi.appendChild(subA);
-        subUl.appendChild(subLi);
-      });
-      
-      li.appendChild(a);
-      li.appendChild(subUl);
+      button.addEventListener('click', expand);
+      item.subpages.forEach(page => submenu.appendChild(makeLink(page)));
+      row.append(button, submenu);
     } else {
-      // Regular link
-      const a = document.createElement('a');
-      a.textContent = item.name;
-      a.href = item.link;
-      if (isCurrentPage(item.link)) {
-        a.classList.add('current');
-      }
-      li.appendChild(a);
+      row.appendChild(makeLink(item).firstElementChild);
     }
-    
-    ul.appendChild(li);
+    list.appendChild(row);
   });
-  
-  navMenu.appendChild(ul);
+  nav.replaceChildren(list);
 
-  // The trigger contains the dropdown, so leaving a row does not reset it.
-  const menuToggle = navMenu.closest('.menu-toggle');
-  if (menuToggle) {
-    menuToggle.addEventListener('mouseleave', () => {
-      navMenu.querySelectorAll('.submenu-toggle').forEach(toggle => {
-        toggle.parentElement.classList.remove('submenu-expanded');
-        toggle.setAttribute('aria-expanded', 'false');
-      });
-    });
+  function makeLink(page) {
+    const row = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = page.link;
+    link.textContent = page.name;
+    if (isCurrentPage(page.link)) {
+      link.className = 'current';
+      link.setAttribute('aria-current', 'page');
+    }
+    row.appendChild(link);
+    return row;
   }
+
+  let open = false;
+  let pinned = false;
+  let keyboardInteraction = false;
+  function setOpen(value, returnFocus = false) {
+    open = value;
+    if (!value && (returnFocus || nav.contains(document.activeElement))) {
+      trigger.focus({ preventScroll: true });
+    }
+    container.classList.toggle('is-open', value);
+    trigger.setAttribute('aria-expanded', String(value));
+    nav.inert = !value;
+    if (!value) {
+      pinned = false;
+      nav.querySelectorAll('.submenu-toggle').forEach(button => {
+        button.setAttribute('aria-expanded', 'false');
+        button.parentElement.classList.remove('submenu-expanded');
+        document.getElementById(button.getAttribute('aria-controls')).inert = true;
+      });
+    }
+  }
+  container.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'mouse') setOpen(true);
+  });
+  container.addEventListener('pointerdown', () => { keyboardInteraction = false; });
+  container.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse' && !pinned && !keyboardInteraction) setOpen(false);
+  });
+  trigger.addEventListener('click', event => {
+    // First mouse click pins a hover-open panel; another click closes it.
+    if (event.detail > 0 && open && !pinned) {
+      pinned = true;
+    } else {
+      pinned = !open;
+      setOpen(!open);
+    }
+  });
+  container.addEventListener('keydown', event => {
+    keyboardInteraction = true;
+    if (event.key === 'Escape' && open) {
+      event.preventDefault();
+      setOpen(false, true);
+    }
+  });
+  container.addEventListener('focusout', event => {
+    if (!container.contains(event.relatedTarget)) {
+      keyboardInteraction = false;
+      setOpen(false);
+    }
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!container.contains(event.target)) setOpen(false);
+  });
 }
 
 /**
@@ -158,7 +192,8 @@ function renderFooter() {
  */
 function initThemeToggle() {
   // Get saved theme or default to dark
-  const savedTheme = localStorage.getItem('theme') || 'dark';
+  let savedTheme = 'dark';
+  try { savedTheme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark'; } catch { /* Storage may be disabled. */ }
   document.documentElement.setAttribute('data-theme', savedTheme);
 
   // Create theme toggle button
@@ -191,43 +226,20 @@ function initThemeToggle() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     
-    // Get button position for radial transition
+    document.documentElement.setAttribute('data-theme', newTheme);
+    try { localStorage.setItem('theme', newTheme); } catch { /* Theme still works without storage. */ }
+    themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const rect = themeToggle.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    
-    // Get new theme background color
-    const newBgColor = newTheme === 'dark' ? '#0f172a' : '#ffffff';
-    
-    // Create radial transition overlay
     const overlay = document.createElement('div');
     overlay.className = 'theme-transition-overlay';
-    overlay.style.setProperty('--origin-x', x + 'px');
-    overlay.style.setProperty('--origin-y', y + 'px');
-    overlay.style.backgroundColor = newBgColor;
-    
-    // Insert at the beginning of body (behind all content)
-    document.body.insertBefore(overlay, document.body.firstChild);
-    
-    // Change theme immediately (for text/other elements)
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
-    
-    // Trigger radial background transition
-    requestAnimationFrame(() => {
-      overlay.classList.add('active');
-    });
-    
-    // Remove overlay after animation
-    setTimeout(() => {
-      overlay.classList.remove('active');
-      setTimeout(() => {
-        if (overlay.parentNode) {
-          document.body.removeChild(overlay);
-        }
-      }, 600);
-    }, 600);
+    overlay.style.setProperty('--origin-x', `${rect.left + rect.width / 2}px`);
+    overlay.style.setProperty('--origin-y', `${rect.top + rect.height / 2}px`);
+    overlay.style.backgroundColor = newTheme === 'dark' ? '#0f172a' : '#ffffff';
+    document.body.prepend(overlay);
+    requestAnimationFrame(() => overlay.classList.add('active'));
+    setTimeout(() => overlay.remove(), 650);
   });
 }
 
@@ -252,7 +264,7 @@ function initHomeButton() {
   // Create home button
   const homeButton = document.createElement('a');
   homeButton.className = 'home-button';
-  homeButton.href = 'index.html';
+  homeButton.href = '/';
   homeButton.setAttribute('aria-label', 'Go to homepage');
   
   // SVG icon for home (vector lineart)

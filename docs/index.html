@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- Generated site metadata -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-goSQm1lGG+/HGlpXAbUz0HBENO9bRfZLgH6Bg28/U6I='; script-src-attr 'none'; style-src 'self'; img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com; font-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="canonical" href="https://www.nmokey.com/">
+  <!-- End generated site metadata -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ryan zheng</title>
@@ -9,44 +14,38 @@
   <meta name="keywords" content="Ryan Zheng, UCLA, Physics, Data Science, Amazon, Scalable Analytics Institute, Scale AI, ACM AI, machine learning, quantitative research, PyTorch, Python, C++">
   <meta name="author" content="Ryan Zheng">
   <meta name="robots" content="index, follow">
-  
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://nmokey.com/">
+  <meta property="og:url" content="https://www.nmokey.com/">
   <meta property="og:title" content="Ryan Zheng - Physics Student at UCLA | Software Engineer &amp; ML Researcher">
   <meta property="og:description" content="Ryan Zheng - UCLA Physics student with a Data Science Engineering minor. Software Engineer Intern at Amazon, Machine Learning Researcher at UCLA Scalable Analytics Institute, and ACM AI Projects Director.">
-  <meta property="og:image" content="https://nmokey.com/assets/images/profile.png">
-  
+  <meta property="og:image" content="https://www.nmokey.com/assets/images/profile.png">
+
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://nmokey.com/">
+  <meta property="twitter:url" content="https://www.nmokey.com/">
   <meta property="twitter:title" content="Ryan Zheng - Physics Student at UCLA | Software Engineer &amp; ML Researcher">
   <meta property="twitter:description" content="Ryan Zheng - UCLA Physics student with a Data Science Engineering minor. Software Engineer Intern at Amazon, Machine Learning Researcher at UCLA Scalable Analytics Institute, and ACM AI Projects Director.">
-  <meta property="twitter:image" content="https://nmokey.com/assets/images/profile.png">
-  
+  <meta property="twitter:image" content="https://www.nmokey.com/assets/images/profile.png">
+
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://nmokey.com/">
-  
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="icon" type="image/x-icon" href="assets/favicons/favicon.ico">
+
+  <link rel="stylesheet" href="/assets/css/main.css?v=db3d7eb3fd2b">
+  <link rel="stylesheet" href="/assets/css/components.css?v=0046af5c8f4d">
+  <link rel="icon" type="image/x-icon" href="/assets/favicons/favicon.ico">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-NK15EEMEB2"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-NK15EEMEB2');
-  </script>
-  
+  <script src="/assets/js/analytics.js?v=1c50af9ccecc"></script>
+
   <!-- Structured Data (JSON-LD) for SEO -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Ryan Zheng",
-    "url": "https://nmokey.com",
-    "image": "https://nmokey.com/assets/images/profile.png",
+    "url": "https://www.nmokey.com",
+    "image": "https://www.nmokey.com/assets/images/profile.png",
     "jobTitle": [
       "Software Engineer Intern",
       "Machine Learning Researcher"
@@ -89,31 +88,26 @@
   </script>
 </head>
 <body>
-  <!-- Hamburger Menu Toggle -->
-  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
-    <div class="menu-icon">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-    <!-- Navigation Menu - Floating Dropdown -->
-    <nav class="nav-menu" id="navMenu" role="navigation">
-      <!-- Navigation will be inserted here by JavaScript -->
-    </nav>
-  </button>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="site-menu" id="siteMenu">
+    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
+      <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <nav class="nav-menu" id="navMenu" aria-label="Main navigation" inert></nav>
+  </div>
 
   <!-- Main Content -->
-  <main class="page-content">
+  <main class="page-content" id="main-content" tabindex="-1">
     <section class="hero">
-      <img src="assets/images/profile.png" alt="Ryan Zheng - UCLA Physics student, Amazon software engineer intern, and machine learning researcher" class="hero-image">
+      <img src="/assets/images/profile.png" alt="Ryan Zheng - UCLA Physics student, Amazon software engineer intern, and machine learning researcher" class="hero-image">
       <h1 class="hero-name">ryan zheng</h1>
       <p class="hero-subtitle">
         hi! i'm ryan, a <br>
-        <span class="cycling-text" id="cyclingText"></span>
+        <span class="cycling-text" id="cyclingText" aria-hidden="true">physicist</span><span class="sr-only">physicist, programmer, and musician</span>
       </p>
       <div class="hero-actions">
-        <a href="assets/resume.pdf" download="ryan_zheng_resume" target="_blank" class="btn">resume</a>
-        <a href="about.html" class="btn btn-secondary">about</a>
+        <a href="/assets/resume.pdf" download="ryan_zheng_resume" target="_blank" rel="noopener noreferrer" class="btn">resume</a>
+        <a href="/about.html" class="btn btn-secondary">about</a>
       </div>
     </section>
 
@@ -206,17 +200,17 @@
 
       <section id="publications" class="content-section">
         <h1>publications</h1>
-        <p>Chen, Y., Jiao, J., & Zheng, R. (2024). Exploring changes in trip generation and impacts of built environment between regular and essential trips: A study based on the contiguous United States. <em>Proceedings of the CICTP 2024 (pp. 3317–3326)</em>. Presented at the CICTP 2024. <a href="https://doi.org/10.1061/9780784485484.314">https://doi.org/10.1061/9780784485484.314</a></p>
+        <p>Chen, Y., Jiao, J., &amp; Zheng, R. (2024). Exploring changes in trip generation and impacts of built environment between regular and essential trips: A study based on the contiguous United States. <em>Proceedings of the CICTP 2024 (pp. 3317–3326)</em>. Presented at the CICTP 2024. <a href="https://doi.org/10.1061/9780784485484.314">https://doi.org/10.1061/9780784485484.314</a></p>
       </section>
     </div>
   </main>
 
   <footer class="site-footer" id="footer"></footer>
 
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/components.js"></script>
-  <script src="assets/js/main.js"></script>
-  <script src="assets/js/vector-field.js"></script>
-  <script src="assets/js/page-nav.js"></script>
+  <script src="/assets/js/config.js?v=7d42fa3afdf6"></script>
+  <script src="/assets/js/components.js?v=3891f6eb220a"></script>
+  <script src="/assets/js/main.js?v=4704ae7c1f58"></script>
+  <script src="/assets/js/gravity-background.js?v=1c57bac9bdb4"></script>
+  <script src="/assets/js/page-nav.js?v=89c132daad1f"></script>
 </body>
 </html>

@@ -1,0 +1,30 @@
+{
+  "docs/assets/images/art/IMG_2570_3.png": {
+    "sha256": "929cc9e36cd8e8a1f9820e23c5214075c1163367c07fdb152b7d6be2a8671c8f",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  },
+  "docs/assets/images/art/IMG_2747.jpg": {
+    "sha256": "de06124731579d4a998c3078a4fb9c1f52ef62996ceb5725de6a0e8cd26f9bbf",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  },
+  "docs/assets/images/art/IMG_2750.jpg": {
+    "sha256": "1e97f8e86de47636f9e3ed45be6c097e7354a493c4f54cb9bda1db648f6f214f",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  },
+  "docs/assets/images/art/IMG_2752.jpg": {
+    "sha256": "fb6cf2201d2086a1890e4dc26e2a8cb3c4d3726857f0d0f95f57bbb87e266711",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  },
+  "docs/assets/images/art/IMG_2755.jpg": {
+    "sha256": "69f30f8d7297ff01feac7774a6c077323dd533e74e7a2333f686bbd398e7204e",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  },
+  "docs/assets/images/art/IMG_2761.jpg": {
+    "sha256": "b5938325063ac6291253175da9f895f5df6556153ef83b2abaa8dee1fecf6331",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  },
+  "docs/assets/images/profile.png": {
+    "sha256": "8598d898b04c5988fc45a9656bef5b4148f437951dace60262a4a2552c5edeaa",
+    "reason": "Existing image retained: image optimization was excluded from this change."
+  }
+}

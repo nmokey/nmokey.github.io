@@ -1,6 +1,0 @@
-# music
-
-## jazz
-
-## classical
-

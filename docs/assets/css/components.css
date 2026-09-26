@@ -18,7 +18,7 @@
    HAMBURGER MENU - Floating Hover Menu
    ============================================ */
 
-.menu-toggle {
+.site-menu {
   --menu-size: 56px;
   position: fixed;
   top: var(--space-6);
@@ -26,7 +26,7 @@
   width: 56px;
   height: 56px;
   z-index: calc(var(--z-menu) + 10);
-  cursor: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -38,20 +38,17 @@
 
 /* Home button is now on the left, so no adjustment needed */
 
-.menu-toggle:hover .nav-menu,
-.nav-menu:hover {
+.site-menu.is-open .nav-menu {
   opacity: 1;
   visibility: visible;
   clip-path: inset(0 round var(--radius-md));
   pointer-events: all;
 }
 
-/* Hide icon when menu is visible */
-.menu-toggle:hover .menu-icon {
-  opacity: 0;
-  transform: scale(0);
-  pointer-events: none;
-}
+/* Keep an explicit close control when the panel is open. */
+.site-menu.is-open .menu-icon span:nth-child(1) { top: 11px; transform: rotate(45deg); }
+.site-menu.is-open .menu-icon span:nth-child(2) { opacity: 0; }
+.site-menu.is-open .menu-icon span:nth-child(3) { top: 11px; transform: rotate(-45deg); }
 
 .menu-icon {
   position: absolute;
@@ -123,6 +120,9 @@
   display: block;
   padding: var(--space-2);
   padding-bottom: var(--space-4);
+  padding-top: var(--menu-size);
+  max-height: calc(100dvh - 2 * var(--space-6));
+  overflow-y: auto;
 }
 
 /* Light mode frosted glass */
@@ -140,8 +140,7 @@
   transition: opacity var(--transition-base) 0.1s;
 }
 
-.menu-toggle:hover .nav-menu ul,
-.nav-menu:hover ul {
+.site-menu.is-open .nav-menu ul {
   opacity: 1;
 }
 
@@ -159,7 +158,8 @@
   margin-bottom: var(--space-2);
 }
 
-.nav-menu a {
+.nav-menu a,
+.nav-menu .submenu-toggle {
   display: block;
   padding: var(--space-2) var(--space-3); /* Reduced padding */
   color: var(--color-text);
@@ -730,7 +730,7 @@
    ============================================ */
 
 @media screen and (max-width: 768px) {
-  .menu-toggle {
+  .site-menu {
     --menu-size: 48px;
     width: 48px;
     height: 48px;
@@ -787,4 +787,39 @@
   .page-nav {
     right: var(--space-4);
   }
+}
+
+/* The trigger stays separate from the links and remains usable while open. */
+.menu-toggle {
+  position: relative;
+  z-index: 3;
+  width: var(--menu-size);
+  height: var(--menu-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+.nav-menu .submenu-toggle {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  background: transparent;
+  border: 0;
+}
+.nav-menu .submenu[inert] { visibility: hidden; }
+.nav-menu .submenu-toggle:hover { color: var(--color-primary); }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .hero-name::after { transform: scaleX(1); }
+  .cycling-text::after { content: none; }
+  .fade-in { opacity: 1 !important; transform: none !important; }
+  .theme-transition-overlay { display: none; }
 }

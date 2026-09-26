@@ -16,20 +16,20 @@ const navigationData = {
   pages: [
     {
       name: "about",
-      link: "about.html"
+      link: "/about.html"
     },
     {
       name: "portfolios",
       subpages: [
-        { name: "art", link: "art.html" },
-        { name: "music", link: "music.html" },
-        { name: "projects", link: "projects.html" }
+        { name: "art", link: "/art.html" },
+        { name: "music", link: "/music.html" },
+        { name: "projects", link: "/projects.html" }
       ]
     },
     {
       name: "random",
       subpages: [
-        { name: "thoughts", link: "thoughts.html" }
+        { name: "thoughts", link: "/thoughts.html" }
       ]
     }
   ]

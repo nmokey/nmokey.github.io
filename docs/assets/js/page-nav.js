@@ -140,7 +140,7 @@ class PageNavigation {
     topLink.textContent = 'top';
     topLink.addEventListener('click', (e) => {
       e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     });
     
     topItem.appendChild(topLink);
@@ -248,7 +248,8 @@ class PageNavigation {
    */
   updateFade() {
     const scrollY = window.scrollY;
-    const shouldShow = scrollY > this.fadeThreshold;
+    const shouldShow = scrollY > this.fadeThreshold || this.navContainer.contains(document.activeElement);
+    this.navContainer.inert = !shouldShow;
 
     if (shouldShow) {
       // Fade in
@@ -326,7 +327,7 @@ class PageNavigation {
         const offsetPosition = elementPosition + window.pageYOffset - offset;
         window.scrollTo({
           top: offsetPosition,
-          behavior: 'smooth'
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
         });
       }
       return;
@@ -340,7 +341,7 @@ class PageNavigation {
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
       });
     }
   }

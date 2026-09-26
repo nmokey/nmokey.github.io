@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nmokey.com/sitemap.xml
-
+Sitemap: https://www.nmokey.com/sitemap.xml
