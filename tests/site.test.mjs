@@ -104,9 +104,11 @@ test('storage restrictions do not break theme or footer initialization', async t
   assert.ok(d.querySelector('.site-footer').textContent.includes('ryanzheng@nmokey.com'));
 });
 
-test('the menu is hidden and the footer has no notes', async t => {
+test('the menu and button bar are hidden, resume is an icon, and the footer has no notes', async t => {
   const { dom, document: d } = await page(); t.after(() => dom.window.close());
   assert.equal(d.getElementById('siteMenu'), null);
+  assert.equal(d.querySelector('.hero-actions'), null);
+  assert.equal(d.querySelector('.resume-button').getAttribute('href'), '/assets/resume.pdf');
   assert.doesNotMatch(d.querySelector('.site-footer').textContent, /notes|work in progress/);
 });
 

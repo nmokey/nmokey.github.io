@@ -411,10 +411,11 @@ img {
 }
 
 /* ============================================
-   HOME BUTTON
+   HOME AND RESUME BUTTONS
    ============================================ */
 
-.home-button {
+.home-button,
+.resume-button {
   position: fixed;
   top: var(--space-6);
   left: var(--space-6); /* Top left corner */
@@ -435,20 +436,29 @@ img {
   color: var(--color-text);
 }
 
-.home-button svg {
+/* Front page resume link, where the menu used to sit beside the theme toggle */
+.resume-button {
+  left: auto;
+  right: calc(var(--space-6) + 60px);
+}
+
+.home-button svg,
+.resume-button svg {
   width: 24px;
   height: 24px;
   transition: all var(--transition-base);
 }
 
-.home-button:hover {
+.home-button:hover,
+.resume-button:hover {
   box-shadow: var(--shadow-lg);
   transform: scale(1.05);
   background: var(--color-primary);
   color: white;
 }
 
-.home-button:hover svg {
+.home-button:hover svg,
+.resume-button:hover svg {
   stroke: white;
 }
 
@@ -476,6 +486,13 @@ img {
     height: 44px;
     top: var(--space-4);
     right: var(--space-4);
+  }
+
+  .resume-button {
+    width: 44px;
+    height: 44px;
+    top: var(--space-4);
+    right: calc(var(--space-4) + 48px);
   }
 }
 
