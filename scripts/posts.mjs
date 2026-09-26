@@ -45,7 +45,7 @@ const displayDate = date => new Date(`${date}T00:00:00Z`)
 
 export function parsePost(filename, source) {
   const match = source.replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!match) throw new Error(`${filename}: missing front matter (--- title/date/description ---)`);
+  if (!match) throw new Error(`${filename}: missing front matter (--- title/date ---)`);
   const fields = {};
   for (const line of match[1].split('\n')) {
     if (!line.trim()) continue;
@@ -53,7 +53,7 @@ export function parsePost(filename, source) {
     if (!field) throw new Error(`${filename}: cannot read front matter line "${line}"`);
     fields[field[1]] = field[2].replace(/^(["'])(.*)\1$/, '$2');
   }
-  for (const key of ['title', 'date', 'description']) {
+  for (const key of ['title', 'date']) {
     if (!fields[key]) throw new Error(`${filename}: front matter needs "${key}"`);
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.date) || Number.isNaN(Date.parse(fields.date))) {
@@ -70,8 +70,13 @@ export function parsePost(filename, source) {
   catch (error) { throw new Error(`${filename}: ${error.message}`); }
   const styles = new Map();
   html = classifyMathStyles(html, styles);
+  // Search results and the feed need a summary; without a description, use the opening words.
+  const opening = (html.match(/<p>([\s\S]*?)<\/p>/)?.[1] ?? '').replace(/<math[\s\S]*?<\/math>/g, '')
+    .replace(/<[^>]+>/g, '').replace(/&(amp|lt|gt|quot|#39);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" })[entity])
+    .replace(/\s+/g, ' ').trim();
+  const excerpt = opening.length > 160 ? `${opening.slice(0, 160).replace(/\s+\S*$/, '')}…` : opening;
   return {
-    slug, title: fields.title, date: fields.date, description: fields.description,
+    slug, title: fields.title, date: fields.date, description: fields.description ?? '', summary: fields.description || excerpt,
     draft: fields.draft === 'true', math: html.includes('<math'), styles, html
   };
 }
@@ -124,8 +129,8 @@ export function renderPostList(posts) {
   if (!posts.length) return '      <p class="post-list-empty">nothing here yet.</p>';
   const items = posts.map(post => `        <li>
           <a href="/thoughts/${post.slug}.html">${escape(post.title)}</a>
-          <time datetime="${post.date}">${displayDate(post.date)}</time>
-          <p>${escape(post.description)}</p>
+          <time datetime="${post.date}">${displayDate(post.date)}</time>${post.description ? `
+          <p>${escape(post.description)}</p>` : ''}
         </li>`);
   return `      <ul class="post-list">\n${items.join('\n')}\n      </ul>`;
 }
@@ -134,7 +139,7 @@ export function renderPostPage(post, origin) {
   const url = `${origin}/thoughts/${post.slug}.html`;
   const structured = JSON.stringify({
     '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title,
-    description: post.description, datePublished: post.date, url,
+    description: post.summary, datePublished: post.date, url,
     author: { '@type': 'Person', name: 'Ryan Zheng', url: `${origin}/` }
   }).replace(/</g, '\\u003c');
   const body = post.html.replace(/^/gm, '      ');
@@ -145,11 +150,11 @@ export function renderPostPage(post, origin) {
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escape(post.title)} - ryan zheng</title>
-  <meta name="description" content="${escape(post.description)}">
+  <meta name="description" content="${escape(post.summary)}">
   <meta property="og:type" content="article">
   <meta property="og:url" content="${url}">
   <meta property="og:title" content="${escape(post.title)}">
-  <meta property="og:description" content="${escape(post.description)}">
+  <meta property="og:description" content="${escape(post.summary)}">
   <link rel="alternate" type="application/rss+xml" title="thoughts - ryan zheng" href="/feed.xml">
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="/assets/css/components.css">${post.math ? `
@@ -197,7 +202,7 @@ export function renderFeed(posts, origin) {
       <link>${origin}/thoughts/${post.slug}.html</link>
       <guid>${origin}/thoughts/${post.slug}.html</guid>
       <pubDate>${new Date(`${post.date}T00:00:00Z`).toUTCString()}</pubDate>
-      <description>${escape(post.description)}</description>
+      <description>${escape(post.summary)}</description>
     </item>`);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">

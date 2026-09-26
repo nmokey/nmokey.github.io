@@ -47,10 +47,10 @@ Pages are edited directly in `docs/*.html`. Blog posts on the thoughts page are 
    ---
    title: some title
    date: 2026-09-28
-   description: one line shown on the thoughts page, in search results and in the feed
    draft: true
    ---
    ```
+   Optionally add `description:` for a one-line summary under the title on the thoughts page. Without one, search results and the feed use the post's opening words.
 3. Write the body in Markdown. The title is the page heading, so use `##` for sections. Put images in `docs/assets/images/thoughts/` and reference them as `/assets/images/thoughts/photo.jpg` with alt text.
 4. Preview with `npm run drafts` and `npm run preview` (http://127.0.0.1:8765).
 5. To publish, remove `draft: true` (or set it to `false`), run `npm run sync`, and commit both the Markdown and the generated files.

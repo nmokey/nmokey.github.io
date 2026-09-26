@@ -18,10 +18,17 @@ test('front matter and file name become the post record', () => {
 
 test('mistakes are reported with the file name', () => {
   assert.throws(() => parsePost('a.md', 'no front matter'), /a\.md: missing front matter/);
-  assert.throws(() => parsePost('a.md', source('title: t\ndate: 2026-09-28')), /needs "description"/);
+  assert.throws(() => parsePost('a.md', source('date: 2026-09-28')), /needs "title"/);
   assert.throws(() => parsePost('a.md', source('title: t\ndate: sept 28\ndescription: d')), /YYYY-MM-DD/);
   assert.throws(() => parsePost('My Post.md', source(valid)), /lowercase-words-with-dashes/);
   assert.throws(() => parsePost('a.md', source(valid, '# second title')), /use ## for sections/);
+});
+
+test('without a description, the list shows none and search results use the opening words', () => {
+  const post = parsePost('a.md', source('title: t\ndate: 2026-09-28', `it&#39;s $x$ here. ${'word '.repeat(40)}\n\nsecond paragraph`));
+  assert.doesNotMatch(renderPostList([post]), /<p>/);
+  assert.match(post.summary, /^it's here\. word word/);
+  assert.ok(post.summary.endsWith('word…') && post.summary.length <= 161);
 });
 
 test('list and feed escape text and handle having no posts', () => {
