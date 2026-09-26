@@ -15,14 +15,15 @@ test('all pages load without script errors or CSP violations', async ({ page }) 
   for (const path of ['/', '/about.html', '/art.html', '/music.html', '/projects.html', '/thoughts.html', '/thoughts/learning-stuff.html', '/missing/nested/page']) {
     const response = await page.goto(path);
     expect(response.status()).toBe(path.startsWith('/missing') ? 404 : 200);
-    await expect(page.getByRole('button', {name:'Toggle menu'})).toBeVisible();
+    await expect(page.getByRole('button', {name:'Toggle menu'})).toHaveCount(0);
     await expect(page.getByRole('button', {name:'Toggle theme'})).toBeVisible();
     await expect(page.locator('#gravity-background-canvas')).toHaveCount(1);
   }
   expect(errors).toEqual([]);
 });
 
-test('keyboard menu is visible, retains sections, and closes with Escape', async ({ page }) => {
+// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
+test.skip('keyboard menu is visible, retains sections, and closes with Escape', async ({ page }) => {
   await page.goto('/');
   const trigger = page.getByRole('button', {name:'Toggle menu'});
   await trigger.press('Enter');
@@ -40,7 +41,8 @@ test('keyboard menu is visible, retains sections, and closes with Escape', async
   await expect(trigger).toBeFocused();
 });
 
-test('hover transition between sections does not collapse either section', async ({ page }) => {
+// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
+test.skip('hover transition between sections does not collapse either section', async ({ page }) => {
   await page.goto('/');
   await page.locator('#menuToggle').hover();
   await page.locator('.submenu-toggle').nth(0).hover();
@@ -78,7 +80,8 @@ test('CSP blocks an injected inline script', async ({ page }) => {
 
 test.describe('touch viewport', () => {
   test.use({ viewport:{width:390,height:844}, hasTouch:true, isMobile:true });
-  test('tap navigation reaches a page and stays inside the viewport', async ({ page }) => {
+  // Menu is hidden; re-enable when it comes back.
+  test.skip('tap navigation reaches a page and stays inside the viewport', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button',{name:'Toggle menu'}).tap();
     await page.locator('.submenu-toggle').nth(0).tap();

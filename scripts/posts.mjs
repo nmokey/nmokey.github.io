@@ -168,12 +168,14 @@ export function renderPostPage(post, origin) {
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
+  <!-- Menu hidden so visitors only see the front page; uncomment this and renderNavigation() in components.js to restore.
   <div class="site-menu" id="siteMenu">
     <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
       <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
     <nav class="nav-menu" id="navMenu" aria-label="Main navigation" inert></nav>
   </div>
+  -->
 
   <main class="page-content" aria-label="Content" id="main-content" tabindex="-1">
     <article class="container-narrow post">

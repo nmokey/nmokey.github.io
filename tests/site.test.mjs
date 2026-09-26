@@ -35,7 +35,8 @@ function pointer(window, target, type, pointerType = 'mouse') {
   target.dispatchEvent(event);
 }
 
-test('hovering across sections only expands; leaving resets the whole menu', async t => {
+// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
+test.skip('hovering across sections only expands; leaving resets the whole menu', async t => {
   const { dom, window, document: d } = await page(); t.after(() => dom.window.close());
   const menu = d.getElementById('siteMenu');
   const trigger = d.getElementById('menuToggle');
@@ -53,7 +54,8 @@ test('hovering across sections only expands; leaving resets the whole menu', asy
   assert.ok(sections.every(button => button.getAttribute('aria-expanded') === 'false'));
 });
 
-test('keyboard activation, Escape and focus leaving support the whole menu', async t => {
+// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
+test.skip('keyboard activation, Escape and focus leaving support the whole menu', async t => {
   const { dom, window, document: d } = await page(); t.after(() => dom.window.close());
   const trigger = d.getElementById('menuToggle');
   trigger.focus(); trigger.click();
@@ -67,7 +69,8 @@ test('keyboard activation, Escape and focus leaving support the whole menu', asy
   assert.equal(trigger.getAttribute('aria-expanded'), 'false');
 });
 
-test('touch ignores hover and can open, expand, and dismiss outside', async t => {
+// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
+test.skip('touch ignores hover and can open, expand, and dismiss outside', async t => {
   const { dom, window, document: d } = await page(); t.after(() => dom.window.close());
   const menu = d.getElementById('siteMenu');
   const trigger = d.getElementById('menuToggle');
@@ -94,12 +97,17 @@ test('reduced motion stops typing and skips theme transitions, including prefere
   assert.equal(timers.size, 0);
 });
 
-test('storage restrictions do not break theme or navigation initialization', async t => {
+test('storage restrictions do not break theme or footer initialization', async t => {
   const { dom, document: d } = await page({storageBlocked:true, reducedMotion:true}); t.after(() => dom.window.close());
   d.querySelector('.theme-toggle').click();
   assert.equal(d.documentElement.dataset.theme, 'light');
-  d.getElementById('menuToggle').click();
-  assert.equal(d.getElementById('menuToggle').getAttribute('aria-expanded'), 'true');
+  assert.ok(d.querySelector('.site-footer').textContent.includes('ryanzheng@nmokey.com'));
+});
+
+test('the menu is hidden and the footer has no notes', async t => {
+  const { dom, document: d } = await page(); t.after(() => dom.window.close());
+  assert.equal(d.getElementById('siteMenu'), null);
+  assert.doesNotMatch(d.querySelector('.site-footer').textContent, /notes|work in progress/);
 });
 
 test('skip link transfers focus and uses instant scrolling under reduced motion', async t => {

@@ -58,9 +58,6 @@ const cyclingRoles = [
 const footerConfig = {
   contact: {
     email: 'ryanzheng@nmokey.com'
-  },
-  notes: {
-    text: 'this site is a work in progress'
   }
 };
 

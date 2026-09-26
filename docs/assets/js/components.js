@@ -152,7 +152,7 @@ function renderNavigation() {
 }
 
 /**
- * Renders the site footer with contact information and notes
+ * Renders the site footer with contact information
  * Uses footerConfig for content
  * 
  * @returns {void}
@@ -168,10 +168,6 @@ function renderFooter() {
         <ul>
           <li><a class="u-email" href="mailto:${footerConfig.contact.email}" target="_blank" rel="noopener noreferrer">${footerConfig.contact.email}</a></li>
         </ul>
-      </div>
-      <div class="footer-col">
-        <h3>notes</h3>
-        <p>${footerConfig.notes.text}</p>
       </div>
     </div>
   `;
@@ -289,7 +285,8 @@ function initHomeButton() {
  * Called automatically when the page loads
  */
 document.addEventListener('DOMContentLoaded', function() {
-  renderNavigation();
+  // Menu hidden so visitors only see the front page; uncomment (and the markup in each page) to restore.
+  // renderNavigation();
   renderFooter();
   initThemeToggle();
   initHomeButton();
