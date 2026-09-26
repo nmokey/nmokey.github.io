@@ -1,8 +1,9 @@
-// Page content lives in docs/*.html and posts/*.md. Generated: post pages, the thoughts
-// post list, security metadata, the sitemap and the feed. --drafts includes draft posts.
+// Page content lives in docs/*.html and posts/*.md. Generated: post pages and their timestamp
+// proofs, the thoughts post list, math styles, security metadata, the sitemap and the feed.
+// --drafts includes draft posts.
 import { readFile, writeFile, readdir, mkdir, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { loadPosts, renderPostList, renderPostPage, renderFeed } from './posts.mjs';
+import { loadPosts, renderPostList, renderPostPage, renderFeed, renderMathCss } from './posts.mjs';
 
 const check = process.argv.includes('--check');
 const origin = 'https://www.nmokey.com';
@@ -19,14 +20,25 @@ pages.set('thoughts.html', pages.get('thoughts.html').replace(list, () =>
 
 let stale = false;
 async function output(path, content) {
-  const current = await readFile(path, 'utf8').catch(() => '');
-  if (current === content) return;
+  const current = await readFile(path).catch(() => null);
+  if (current?.equals(Buffer.from(content))) return;
   if (check) { console.error(`${path}: generated output is stale; run npm run sync`); stale = true; }
   else await writeFile(path, content);
 }
+// Math assets are written before pages so their version stamps match.
+await mkdir('docs/assets/temml', { recursive: true });
+for (const name of ['Temml-Local.css', 'Temml.woff2']) {
+  await output(`docs/assets/temml/${name}`, await readFile(`node_modules/temml/dist/${name}`));
+}
+await output('docs/assets/temml/math.css', renderMathCss(posts));
+const files = new Map();
+for (const post of posts.filter(post => post.proof)) {
+  files.set(`${post.slug}.md`, post.source).set(`${post.slug}.md.ots`, post.proof);
+}
 await mkdir('docs/thoughts', { recursive: true });
+for (const [name, content] of files) await output(`docs/thoughts/${name}`, content);
 for (const name of await readdir('docs/thoughts')) {
-  if (!name.endsWith('.html') || pages.has(`thoughts/${name}`)) continue;
+  if (pages.has(`thoughts/${name}`) || files.has(name)) continue;
   if (check) { console.error(`docs/thoughts/${name}: no matching published post; run npm run sync`); stale = true; }
   else await unlink(`docs/thoughts/${name}`);
 }

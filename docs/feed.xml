@@ -4,6 +4,12 @@
     <title>thoughts - ryan zheng</title>
     <link>https://www.nmokey.com/thoughts.html</link>
     <description>stories and thoughts that ryan wants to write about</description>
-
+    <item>
+      <title>learning stuff</title>
+      <link>https://www.nmokey.com/thoughts/learning-stuff.html</link>
+      <guid>https://www.nmokey.com/thoughts/learning-stuff.html</guid>
+      <pubDate>Sat, 26 Sep 2026 00:00:00 GMT</pubDate>
+      <description>on learning things for the hell of it, and worrying that i&#39;m losing that.</description>
+    </item>
   </channel>
 </rss>

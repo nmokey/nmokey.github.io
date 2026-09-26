@@ -57,11 +57,26 @@ Pages are edited directly in `docs/*.html`. Blog posts on the thoughts page are 
 
 The site's Content Security Policy blocks inline scripts and `style=""` attributes, so keep posts to plain Markdown. YouTube embeds are allowed.
 
+### Math
+
+Write LaTeX between `$...$` (inline) or `$$...$$` (display, on its own lines). It is rendered to MathML by [Temml](https://temml.org) at build time, so pages need no math JavaScript. Temml's inline styles are moved into the generated `docs/assets/temml/math.css` to satisfy the CSP. A LaTeX error stops the build and names the post. Write a literal dollar sign as `\$` (a `$` directly before a digit, like `$5`, is left alone).
+
+### Timestamping a post
+
+Posts can be timestamped with [OpenTimestamps](https://opentimestamps.org), which anchors the file's SHA-256 hash in the Bitcoin blockchain. Only the hash leaves your machine. Requires [uv](https://docs.astral.sh/uv/).
+
+1. Finish the post (no `draft: true`), then run `npm run stamp -- posts/2026-09-26-some-title.md`. This writes `posts/2026-09-26-some-title.md.ots`.
+2. Run `npm run sync` and commit. The post page links to the exact Markdown source and the proof; anyone can check them at opentimestamps.org or with `ots verify`.
+3. A few hours later, once a Bitcoin block has confirmed it, run `uvx --from opentimestamps-client ots upgrade posts/<file>.md.ots`, then `npm run sync` and commit. The upgraded proof verifies without relying on the calendar servers.
+
+The proof covers the file byte for byte. `npm run check` fails if a stamped post is edited; to change it, delete the `.ots` file and stamp again (the new proof has the new date).
+
 ### Commands
 
 | Command | What it does |
 | --- | --- |
 | `npm run sync` | Generates post pages, the thoughts list, `feed.xml`, `sitemap.xml`, CSP/canonical metadata and asset version stamps |
+| `npm run stamp -- posts/<file>.md` | Timestamps a finished post with OpenTimestamps |
 | `npm run drafts` | Same, including draft posts (never commit this output; `npm run check` rejects it) |
 | `npm run check` | Fails if generated files are stale, then validates HTML, local links, JavaScript and asset sizes |
 | `npm test` | Unit tests (menu, theme, posts) |

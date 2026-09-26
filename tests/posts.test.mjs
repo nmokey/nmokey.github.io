@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePost, renderPostList, renderFeed } from '../scripts/posts.mjs';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { parsePost, renderPostList, renderFeed, renderMathCss, proofDigest } from '../scripts/posts.mjs';
 
 const source = (front, body = 'hello **there**') => `---\n${front}\n---\n\n${body}\n`;
 const valid = 'title: "a & b"\ndate: 2026-09-28\ndescription: short <summary>';
@@ -29,4 +31,22 @@ test('list and feed escape text and handle having no posts', () => {
   const feed = renderFeed([post], 'https://example.test');
   assert.match(feed, /<link>https:\/\/example\.test\/thoughts\/first-post\.html<\/link>/);
   assert.match(feed, /<pubDate>Mon, 28 Sep 2026 00:00:00 GMT<\/pubDate>/);
+});
+
+test('math renders to MathML with styles moved into classes', () => {
+  const post = parsePost('a.md', source(valid, 'costs \\$5 to $6, and $\\hat{Q}$ too\n\n$$\n\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}\n$$'));
+  assert.match(post.html, /^<p>costs \$5 to \$6, and <math>/);
+  assert.match(post.html, /<math display="block" class="tml-[0-9a-f]{8} tml-display">/);
+  assert.doesNotMatch(post.html, /style=/);
+  assert.equal(post.math, true);
+  assert.match(renderMathCss([post]), /\.tml-[0-9a-f]{8} \{ display:block math !important; \}/);
+  assert.throws(() => parsePost('a.md', source(valid, '$\\frac{1$')), /a\.md: .*end of input/);
+});
+
+test('published timestamp proofs match their posts', () => {
+  for (const name of ['2026-09-26-learning-stuff.md']) {
+    const digest = createHash('sha256').update(readFileSync(`posts/${name}`)).digest('hex');
+    assert.equal(proofDigest(readFileSync(`posts/${name}.ots`)), digest);
+  }
+  assert.throws(() => proofDigest(Buffer.from('not a proof')), /not a sha256 OpenTimestamps proof/);
 });

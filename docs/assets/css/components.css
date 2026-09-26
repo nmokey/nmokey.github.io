@@ -678,6 +678,21 @@
   border-top: 1px solid var(--color-border);
 }
 
+.post math {
+  font-size: 1.1em;
+}
+
+.post math[display="block"] {
+  margin: var(--space-6) 0;
+  overflow-x: auto;
+}
+
+.post-proof {
+  margin-top: var(--space-16);
+  font-size: var(--text-sm);
+  color: var(--color-text-lighter);
+}
+
 /* ============================================
    PAGE NAVIGATION - Right Side Navigation
    ============================================ */

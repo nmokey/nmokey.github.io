@@ -12,7 +12,7 @@ test('all pages load without script errors or CSP violations', async ({ page }) 
   page.on('console', message => {
     if (message.type() === 'error' && /Content Security Policy|Refused to/i.test(message.text())) errors.push(message.text());
   });
-  for (const path of ['/', '/about.html', '/art.html', '/music.html', '/projects.html', '/thoughts.html', '/missing/nested/page']) {
+  for (const path of ['/', '/about.html', '/art.html', '/music.html', '/projects.html', '/thoughts.html', '/thoughts/learning-stuff.html', '/missing/nested/page']) {
     const response = await page.goto(path);
     expect(response.status()).toBe(path.startsWith('/missing') ? 404 : 200);
     await expect(page.getByRole('button', {name:'Toggle menu'})).toBeVisible();
