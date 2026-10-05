@@ -22,9 +22,5 @@
   "docs/assets/images/art/IMG_2761.jpg": {
     "sha256": "b5938325063ac6291253175da9f895f5df6556153ef83b2abaa8dee1fecf6331",
     "reason": "Existing image retained: image optimization was excluded from this change."
-  },
-  "docs/assets/images/profile.png": {
-    "sha256": "8598d898b04c5988fc45a9656bef5b4148f437951dace60262a4a2552c5edeaa",
-    "reason": "Existing image retained: image optimization was excluded from this change."
   }
 }

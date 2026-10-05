@@ -572,7 +572,7 @@ docs/
 │   │   └── vector-field.js # Vector field visualization
 │   ├── images/
 │   │   ├── art/            # Art portfolio images
-│   │   ├── profile.png      # Profile picture
+│   │   ├── profile.jpg      # Profile picture
 │   │   └── caution.png      # 404 page image
 │   ├── favicons/
 │   │   └── favicon.ico
