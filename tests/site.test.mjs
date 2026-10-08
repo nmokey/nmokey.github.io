@@ -108,7 +108,12 @@ test('the menu and button bar are hidden, resume is an icon, and the footer has 
   const { dom, document: d } = await page(); t.after(() => dom.window.close());
   assert.equal(d.getElementById('siteMenu'), null);
   assert.equal(d.querySelector('.hero-actions'), null);
-  assert.equal(d.querySelector('.resume-button').getAttribute('href'), '/assets/resume.pdf');
+  const resume = d.querySelector('.resume-button');
+  assert.equal(resume.getAttribute('href'), '/assets/resume.pdf');
+  assert.equal(resume.getAttribute('target'), '_blank');
+  assert.equal(resume.hasAttribute('download'), false);
+  assert.equal(resume.getAttribute('aria-label'), 'Open resume in a new tab');
+  assert.ok(resume.relList.contains('noopener'));
   assert.doesNotMatch(d.querySelector('.site-footer').textContent, /notes|work in progress/);
 });
 
