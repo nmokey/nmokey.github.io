@@ -53,7 +53,7 @@ Pages are edited directly in `docs/*.html`. Blog posts on the thoughts page are 
    Optionally add `description:` for a one-line summary under the title on the thoughts page. Without one, search results and the feed use the post's opening words.
 3. Write the body in Markdown. The title is the page heading, so use `##` for sections. Put images in `docs/assets/images/thoughts/` and reference them as `/assets/images/thoughts/photo.jpg` with alt text.
 4. Preview with `npm run drafts` and `npm run preview` (http://127.0.0.1:8765).
-5. To publish, remove `draft: true` (or set it to `false`), run `npm run sync`, and commit both the Markdown and the generated files.
+5. To publish, remove `draft: true` (or set it to `false`), timestamp the final Markdown with `npm run stamp -- posts/YYYY-MM-DD-some-title.md`, then run `npm run sync` and `npm run verify`. Confirm the generated post page includes its OpenTimestamps source and proof links before committing and pushing the Markdown, `.ots` proof, and generated files.
 
 The site's Content Security Policy blocks inline scripts and `style=""` attributes, so keep posts to plain Markdown. YouTube embeds are allowed.
 
@@ -63,7 +63,7 @@ Write LaTeX between `$...$` (inline) or `$$...$$` (display, on its own lines). I
 
 ### Timestamping a post
 
-Posts can be timestamped with [OpenTimestamps](https://opentimestamps.org), which anchors the file's SHA-256 hash in the Bitcoin blockchain. Only the hash leaves your machine. Requires [uv](https://docs.astral.sh/uv/).
+Timestamp every published post with [OpenTimestamps](https://opentimestamps.org), which anchors the file's SHA-256 hash in the Bitcoin blockchain. Only the hash leaves your machine. Requires [uv](https://docs.astral.sh/uv/).
 
 1. Finish the post (no `draft: true`), then run `npm run stamp -- posts/2026-09-26-some-title.md`. This writes `posts/2026-09-26-some-title.md.ots`.
 2. Run `npm run sync` and commit. The post page links to the exact Markdown source and the proof; anyone can check them at opentimestamps.org or with `ots verify`.
