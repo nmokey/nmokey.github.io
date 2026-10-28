@@ -7,6 +7,7 @@ import { loadPosts, renderPostList, renderPostPage, renderFeed, renderMathCss } 
 
 const check = process.argv.includes('--check');
 const origin = 'https://www.nmokey.com';
+const themeVersion = createHash('sha256').update(await readFile('docs/assets/js/theme-init.js')).digest('hex').slice(0, 12);
 const posts = await loadPosts('posts', { drafts: process.argv.includes('--drafts') });
 const pages = new Map();
 for (const name of (await readdir('docs')).filter(name => name.endsWith('.html')).sort()) {
@@ -65,7 +66,7 @@ for (let [name, html] of pages) {
     html = html.replace(match[0], match[0].split('=')[0] + `="${match[1]}?v=${digest}"`);
   }
   const canonical = `${origin}/${name === 'index.html' ? '' : name}`;
-  const metadata = `\n  <!-- Generated site metadata -->\n  <meta http-equiv="Content-Security-Policy" content="${policy}">\n  <meta name="referrer" content="strict-origin-when-cross-origin">\n  ${name === '404.html' ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}\n  <!-- End generated site metadata -->\n`;
+  const metadata = `\n  <!-- Generated site metadata -->\n  <meta http-equiv="Content-Security-Policy" content="${policy}">\n  <meta name="referrer" content="strict-origin-when-cross-origin">\n  ${name === '404.html' ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}\n  <script src="/assets/js/theme-init.js?v=${themeVersion}"></script>\n  <!-- End generated site metadata -->\n`;
   html = html.replace(/(<meta charset="utf-8">)\n?/, `$1${metadata}`);
   await output(`docs/${name}`, html);
 }
