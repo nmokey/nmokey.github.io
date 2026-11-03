@@ -55,7 +55,7 @@ for (let [name, html] of pages) {
     "img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com",
     "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
     name === 'poker/index.html'
-      ? "frame-src https://nmokey-pocketsolver.streamlit.app"
+      ? "frame-src https://nmokey-poker-decision-model-deploystreamlitapp-codexdepl-dhuhge.streamlit.app"
       : "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
     "font-src 'self'",
     "base-uri 'none'",
