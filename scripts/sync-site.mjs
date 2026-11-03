@@ -13,6 +13,7 @@ const pages = new Map();
 for (const name of (await readdir('docs')).filter(name => name.endsWith('.html')).sort()) {
   pages.set(name, await readFile(`docs/${name}`, 'utf8'));
 }
+pages.set('poker/index.html', await readFile('docs/poker/index.html', 'utf8'));
 for (const post of posts) pages.set(`thoughts/${post.slug}.html`, renderPostPage(post, origin));
 const list = /<!-- Generated post list -->[\s\S]*?<!-- End generated post list -->/;
 if (!list.test(pages.get('thoughts.html'))) throw new Error('docs/thoughts.html: missing generated post list markers');
@@ -53,7 +54,9 @@ for (let [name, html] of pages) {
     "style-src 'self'",
     "img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com",
     "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
-    "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+    name === 'poker/index.html'
+      ? "frame-src https://nmokey-pocketsolver.streamlit.app"
+      : "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
     "font-src 'self'",
     "base-uri 'none'",
     "object-src 'none'",
@@ -65,12 +68,12 @@ for (let [name, html] of pages) {
     const digest = createHash('sha256').update(await readFile(`docs${match[1]}`)).digest('hex').slice(0, 12);
     html = html.replace(match[0], match[0].split('=')[0] + `="${match[1]}?v=${digest}"`);
   }
-  const canonical = `${origin}/${name === 'index.html' ? '' : name}`;
+  const canonical = `${origin}/${name === 'index.html' ? '' : name.replace(/\/index\.html$/, '/')}`;
   const metadata = `\n  <!-- Generated site metadata -->\n  <meta http-equiv="Content-Security-Policy" content="${policy}">\n  <meta name="referrer" content="strict-origin-when-cross-origin">\n  ${name === '404.html' ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}\n  <script src="/assets/js/theme-init.js?v=${themeVersion}"></script>\n  <!-- End generated site metadata -->\n`;
   html = html.replace(/(<meta charset="utf-8">)\n?/, `$1${metadata}`);
   await output(`docs/${name}`, html);
 }
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...pages.keys()].filter(name => name !== '404.html').map(name => `  <url><loc>${origin}/${name === 'index.html' ? '' : name}</loc></url>`).join('\n')}\n</urlset>\n`;
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...pages.keys()].filter(name => name !== '404.html').map(name => `  <url><loc>${origin}/${name === 'index.html' ? '' : name.replace(/\/index\.html$/, '/')}</loc></url>`).join('\n')}\n</urlset>\n`;
 await output('docs/sitemap.xml', sitemap);
 await output('docs/feed.xml', renderFeed(posts, origin));
 await output('docs/robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`);

@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 
 const root = resolve('docs');
 const pages = [
+  'poker/index.html',
   ...(await readdir(root)).filter(name => name.endsWith('.html')),
   ...(await readdir(resolve(root, 'thoughts')).catch(() => [])).filter(name => name.endsWith('.html')).map(name => `thoughts/${name}`)
 ];
