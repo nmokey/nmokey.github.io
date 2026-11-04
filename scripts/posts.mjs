@@ -3,6 +3,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { Marked } from 'marked';
+import { JSDOM } from 'jsdom';
 import temml from 'temml';
 
 const tex = (source, displayMode) => temml.renderToString(source.trim(), { displayMode, throwOnError: true });
@@ -75,9 +76,10 @@ export function parsePost(filename, source) {
     .replace(/<[^>]+>/g, '').replace(/&(amp|lt|gt|quot|#39);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" })[entity])
     .replace(/\s+/g, ' ').trim();
   const excerpt = opening.length > 160 ? `${opening.slice(0, 160).replace(/\s+\S*$/, '')}…` : opening;
+  const wordCount = JSDOM.fragment(html).textContent.match(/\S+/g)?.length ?? 0;
   return {
     slug, title: fields.title, date: fields.date, description: fields.description ?? '', summary: fields.description || excerpt,
-    draft: fields.draft === 'true', math: html.includes('<math'), styles, html
+    draft: fields.draft === 'true', math: html.includes('<math'), styles, html, wordCount
   };
 }
 
@@ -127,11 +129,19 @@ export async function loadPosts(directory, { drafts = false } = {}) {
 
 export function renderPostList(posts) {
   if (!posts.length) return '      <p class="post-list-empty">nothing here yet.</p>';
-  const items = posts.map(post => `        <li>
+  const longest = Math.max(1, ...posts.map(post => post.wordCount));
+  const items = posts.map(post => {
+    const minutes = Math.max(1, Math.round(post.wordCount / 225));
+    const length = `${post.wordCount.toLocaleString('en-US')} words · about ${minutes} min read`;
+    return `        <li>
           <a href="/thoughts/${post.slug}.html">${escape(post.title)}</a>
-          <time datetime="${post.date}">${displayDate(post.date)}</time>${post.description ? `
+          <time datetime="${post.date}">${displayDate(post.date)}</time>
+          <span class="post-length" title="${length} · bar relative to the longest post">
+            <meter min="0" max="${longest}" value="${post.wordCount}" aria-label="${escape(post.title)}: post length" aria-valuetext="${length}; ${Math.round(post.wordCount / longest * 100)}% of the longest post">${length}</meter>
+          </span>${post.description ? `
           <p>${escape(post.description)}</p>` : ''}
-        </li>`);
+        </li>`;
+  });
   return `      <ul class="post-list">\n${items.join('\n')}\n      </ul>`;
 }
 

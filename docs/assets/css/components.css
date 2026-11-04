@@ -588,8 +588,62 @@
 }
 
 .post-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem;
+  column-gap: var(--space-6);
   padding-left: 0;
   margin-bottom: var(--space-8);
+}
+
+.post-list li > a,
+.post-list li > time,
+.post-list li > p {
+  grid-column: 1;
+}
+
+.post-length {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  padding: var(--space-3) 0;
+}
+
+.post-length meter {
+  display: block;
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  /* Keep the visible length flush right, with no empty track. */
+  transform: scaleX(-1);
+  opacity: 0.28;
+  transition: opacity var(--transition-fast);
+}
+
+.post-length meter::-webkit-meter-bar {
+  height: 6px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+}
+
+.post-length meter::-webkit-meter-optimum-value {
+  min-width: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-lighter);
+}
+
+.post-length meter::-moz-meter-bar {
+  min-width: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-lighter);
+}
+
+.post-list li:hover .post-length meter,
+.post-list li:focus-within .post-length meter {
+  opacity: 0.5;
 }
 
 .post-list li:hover {
@@ -600,6 +654,10 @@
 .post-list a {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
+}
+
+.post-list a::after {
+  content: none;
 }
 
 .post-list time,
