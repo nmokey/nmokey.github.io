@@ -499,6 +499,23 @@ img {
 
 /* Keep a native cursor even when animation or JavaScript is unavailable. */
 a, button { cursor: pointer; }
+
+@media (hover: hover) and (pointer: fine) {
+  html {
+    --cursor-default: url('/assets/images/cursors/square.svg') 8 8;
+    --cursor-link: url('/assets/images/cursors/square-link.svg') 10 10;
+    cursor: var(--cursor-default), auto;
+  }
+
+  html[data-theme="light"] {
+    --cursor-default: url('/assets/images/cursors/square-light.svg') 8 8;
+    --cursor-link: url('/assets/images/cursors/square-link-light.svg') 10 10;
+  }
+
+  a, button, [role="button"], html .site-menu {
+    cursor: var(--cursor-link), pointer;
+  }
+}
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 4px; }
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
