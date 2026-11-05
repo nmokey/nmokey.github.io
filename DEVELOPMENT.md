@@ -51,7 +51,9 @@ paints by [theme-init.js](docs/assets/js/theme-init.js).
 
 Links change color on hover without an underline animation. The Game of Life
 background responds to pointer movement and pauses for reduced-motion preferences
-or a hidden tab. Preserve reduced-motion support when changing animations.
+or a hidden tab. Its grid is saved in session storage between page visits, including
+back/forward navigation, so it continues within the same tab. Preserve reduced-motion
+support when changing animations.
 
 When changing the first rotating role, update `cyclingRoles` in `config.js`, the
 initial text and accessible description in `index.html`, and the fallback in

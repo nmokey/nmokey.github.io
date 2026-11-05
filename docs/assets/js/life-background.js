@@ -1,4 +1,6 @@
 /** Conway's Game of Life: B3/S23, with dead cells beyond the viewport. */
+const lifeSessionKey = 'nmokey-life-v1';
+
 class LifeBackground {
   constructor(canvas) {
     this.canvas = canvas;
@@ -10,6 +12,7 @@ class LifeBackground {
     this.timer = null;
     this.events = new AbortController();
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.restore();
     this.resize();
     this.updateColors();
     const options = { passive: true, signal: this.events.signal };
@@ -26,10 +29,18 @@ class LifeBackground {
     window.addEventListener('pointerup', event => {
       if (event.pointerType === 'touch') release();
     }, options);
-    window.addEventListener('pagehide', () => this.stop(), options);
-    window.addEventListener('pageshow', () => this.start(), options);
+    window.addEventListener('pagehide', () => {
+      release();
+      this.stop();
+      this.save();
+    }, options);
+    window.addEventListener('pageshow', event => {
+      // A cached document may contain an older grid than the page just left.
+      if (event.persisted && this.restore()) this.resize();
+      this.start();
+    }, options);
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { release(); this.stop(); }
+      if (document.hidden) { release(); this.stop(); this.save(); }
       else this.start();
     }, options);
     this.reducedMotion.addEventListener('change', () => {
@@ -39,6 +50,28 @@ class LifeBackground {
     this.themeObserver = new MutationObserver(() => this.updateColors());
     this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     this.start();
+  }
+
+  save() {
+    try {
+      sessionStorage.setItem(lifeSessionKey, JSON.stringify({
+        columns: this.columns, rows: this.rows, cells: this.cells.join('')
+      }));
+    } catch { /* Keep running when browser storage is unavailable or full. */ }
+  }
+
+  restore() {
+    try {
+      const state = JSON.parse(sessionStorage.getItem(lifeSessionKey));
+      if (!state || !Number.isSafeInteger(state.columns) || state.columns <= 0
+          || !Number.isSafeInteger(state.rows) || state.rows <= 0
+          || typeof state.cells !== 'string' || state.cells.length > 1_000_000
+          || state.cells.length !== state.columns * state.rows || !/^[01]+$/.test(state.cells)) return false;
+      this.columns = state.columns;
+      this.rows = state.rows;
+      this.cells = Uint8Array.from(state.cells, Number);
+      return true;
+    } catch { return false; }
   }
 
   resize() {
