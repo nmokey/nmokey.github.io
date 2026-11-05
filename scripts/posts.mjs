@@ -202,7 +202,7 @@ ${body}${post.proof ? `
   <script src="/assets/js/config.js"></script>
   <script src="/assets/js/components.js"></script>
   <script src="/assets/js/main.js"></script>
-  <script src="/assets/js/gravity-background.js"></script>
+  <script src="/assets/js/life-background.js"></script>
 </body>
 </html>
 `;

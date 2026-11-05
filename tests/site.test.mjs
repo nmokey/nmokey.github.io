@@ -86,7 +86,7 @@ test.skip('touch ignores hover and can open, expand, and dismiss outside', async
 
 test('reduced motion stops typing and skips theme transitions, including preference changes', async t => {
   const { dom, window, document: d, motion, timers } = await page({reducedMotion:true}); t.after(() => dom.window.close());
-  assert.equal(d.getElementById('cyclingText').textContent, 'physicist');
+  assert.equal(d.getElementById('cyclingText').textContent, 'quant trader');
   d.querySelector('.theme-toggle').click();
   assert.equal(d.documentElement.dataset.theme, 'light');
   assert.equal(d.querySelector('.theme-transition-overlay'), null);

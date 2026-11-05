@@ -476,13 +476,13 @@ Add `<nav class="page-nav" id="pageNav" aria-label="Page navigation"></nav>` to 
 **Design**:
 - Centered content with `.container-narrow` (max-width: 800px)
 - Consistent typography hierarchy
-- Hover effects on links (underline animation)
+- Subtle link color changes on hover
 - Responsive images and iframes
 
 **Implementation**:
 - Layout: `.container-narrow` class for centered content
 - Typography: Consistent heading sizes and spacing
-- Links: Animated underline on hover using `::after` pseudo-element
+- Links: Color changes on hover, without animated underlines
 - Images: Rounded corners, responsive sizing
 
 ---

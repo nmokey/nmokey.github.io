@@ -2,7 +2,7 @@
 function initCyclingText() {
   const text = document.getElementById('cyclingText');
   if (!text) return;
-  const roles = typeof cyclingRoles === 'undefined' ? ['physicist'] : cyclingRoles;
+  const roles = typeof cyclingRoles === 'undefined' ? ['quant trader'] : cyclingRoles;
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let timer;
   let index = 0;

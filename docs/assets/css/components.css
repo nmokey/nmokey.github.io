@@ -340,12 +340,6 @@
   animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
-/* Remove underline animation from hero buttons */
-.hero-actions .btn::after,
-.hero-actions .btn:hover::after {
-  display: none;
-}
-
 /* Hero button styles - frosted glass with no border */
 .hero-actions .btn {
   border: none; /* Remove border */
@@ -539,30 +533,6 @@
   color: var(--color-primary);
 }
 
-.page-content a {
-  position: relative;
-  transition: all var(--transition-base);
-}
-
-.page-content a:hover {
-  text-decoration: none;
-}
-
-.page-content a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--color-primary);
-  transition: width var(--transition-base);
-}
-
-.page-content a:hover::after {
-  width: 100%;
-}
-
 .page-content img {
   margin: var(--space-8) auto;
   max-width: 100%;
@@ -654,10 +624,6 @@
 .post-list a {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-}
-
-.post-list a::after {
-  content: none;
 }
 
 .post-list time,

@@ -17,7 +17,7 @@ test('all pages load without script errors or CSP violations', async ({ page }) 
     expect(response.status()).toBe(path.startsWith('/missing') ? 404 : 200);
     await expect(page.getByRole('button', {name:'Toggle menu'})).toHaveCount(0);
     await expect(page.getByRole('button', {name:'Toggle theme'})).toBeVisible();
-    await expect(page.locator('#gravity-background-canvas')).toHaveCount(1);
+    await expect(page.locator('#life-background-canvas')).toHaveCount(1);
   }
   expect(errors).toEqual([]);
 });
@@ -61,7 +61,7 @@ test('reduced motion keeps content still and theme usable', async ({ page }) => 
   const canvas = page.locator('canvas');
   const before = await canvas.evaluate(element => element.toDataURL());
   await expect(page.locator('.hero-image')).toHaveCSS('animation-name','none');
-  await expect(page.locator('#cyclingText')).toHaveText('physicist');
+  await expect(page.locator('#cyclingText')).toHaveText('quant trader');
   expect(await canvas.evaluate(element => element.toDataURL())).toBe(before);
   await page.getByRole('button',{name:'Toggle theme'}).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme','light');

@@ -41,6 +41,7 @@ const navigationData = {
  * @type {string[]}
  */
 const cyclingRoles = [
+  'quant trader',
   'physicist',
   'programmer',
   'jazz pianist',
