@@ -57,7 +57,8 @@ export function parsePost(filename, source) {
   for (const key of ['title', 'date']) {
     if (!fields[key]) throw new Error(`${filename}: front matter needs "${key}"`);
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.date) || Number.isNaN(Date.parse(fields.date))) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.date) || Number.isNaN(Date.parse(fields.date))
+      || new Date(fields.date).toISOString().slice(0, 10) !== fields.date) {
     throw new Error(`${filename}: date must be YYYY-MM-DD`);
   }
   const slug = filename.replace(/\.md$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
@@ -166,26 +167,13 @@ export function renderPostPage(post, origin) {
   <meta property="og:title" content="${escape(post.title)}">
   <meta property="og:description" content="${escape(post.summary)}">
   <link rel="alternate" type="application/rss+xml" title="thoughts - ryan zheng" href="/feed.xml">
-  <link rel="stylesheet" href="/assets/css/main.css">
-  <link rel="stylesheet" href="/assets/css/components.css">${post.math ? `
-  <link rel="stylesheet" href="/assets/temml/Temml-Local.css">
-  <link rel="stylesheet" href="/assets/temml/math.css">` : ''}
+  <!-- Generated styles -->
+  <!-- End generated styles -->
   <link rel="icon" type="image/x-icon" href="/assets/favicons/favicon.ico">
   <script type="application/ld+json">${structured}</script>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NK15EEMEB2"></script>
-  <script src="/assets/js/analytics.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-  <!-- Menu hidden so visitors only see the front page; uncomment this and renderNavigation() in components.js to restore.
-  <div class="site-menu" id="siteMenu">
-    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
-      <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
-    </button>
-    <nav class="nav-menu" id="navMenu" aria-label="Main navigation" inert></nav>
-  </div>
-  -->
 
   <main class="page-content" aria-label="Content" id="main-content" tabindex="-1">
     <article class="container-narrow post">
@@ -199,10 +187,8 @@ ${body}${post.proof ? `
 
   <footer class="site-footer" id="footer"></footer>
 
-  <script src="/assets/js/config.js"></script>
-  <script src="/assets/js/components.js"></script>
-  <script src="/assets/js/main.js"></script>
-  <script src="/assets/js/life-background.js"></script>
+  <!-- Generated scripts -->
+  <!-- End generated scripts -->
 </body>
 </html>
 `;

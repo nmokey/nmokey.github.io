@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.mjs';
 
 test('saved light theme is applied before page content paints, including reloads and navigation', async ({ page }) => {
-  await page.route('https://www.googletagmanager.com/**', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
   await page.addInitScript(() => localStorage.setItem('theme', 'light'));
   let release;
   let gate;
@@ -26,7 +25,6 @@ test('saved light theme is applied before page content paints, including reloads
 });
 
 test('theme toggle choice survives navigation and reload', async ({ page }) => {
-  await page.route('https://www.googletagmanager.com/**', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
   await page.goto('/');
   await page.getByRole('button', { name: 'Toggle theme' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
@@ -42,7 +40,6 @@ test('theme toggle choice survives navigation and reload', async ({ page }) => {
 test('blocked storage still loads the default theme and a usable toggle', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.route('https://www.googletagmanager.com/**', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', { get() { throw new Error('Storage blocked'); } });
   });

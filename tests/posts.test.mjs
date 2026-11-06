@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { parsePost, renderPostList, renderFeed, renderMathCss, proofDigest } from '../scripts/posts.mjs';
+import { loadPosts, parsePost, renderPostList, renderFeed, renderMathCss, proofDigest } from '../scripts/posts.mjs';
 
 const source = (front, body = 'hello **there**') => `---\n${front}\n---\n\n${body}\n`;
 const valid = 'title: "a & b"\ndate: 2026-09-28\ndescription: short <summary>';
@@ -56,4 +59,26 @@ test('published timestamp proofs match their posts', () => {
     assert.equal(proofDigest(readFileSync(`posts/${name}.ots`)), digest);
   }
   assert.throws(() => proofDigest(Buffer.from('not a proof')), /not a sha256 OpenTimestamps proof/);
+});
+
+
+test('calendar dates reject impossible days and accept actual leap days', () => {
+  for (const date of ['2026-02-30', '2026-04-31', '2025-02-29', '2026-13-01']) {
+    assert.throws(() => parsePost('a.md', source(`title: t\ndate: ${date}`)), /YYYY-MM-DD/);
+  }
+  assert.equal(parsePost('a.md', source('title: t\ndate: 2024-02-29')).date, '2024-02-29');
+});
+
+test('post loading filters drafts, sorts deterministically, and rejects duplicate slugs', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'nmokey-posts-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const put = (filename, front) => writeFile(join(directory, filename), source(front));
+  await put('older.md', 'title: older\ndate: 2026-01-01');
+  await put('b.md', 'title: b\ndate: 2026-11-04');
+  await put('a.md', 'title: a\ndate: 2026-11-04');
+  await put('draft.md', 'title: draft\ndate: 2026-11-05\ndraft: true');
+  assert.deepEqual((await loadPosts(directory)).map(post => post.slug), ['a', 'b', 'older']);
+  assert.deepEqual((await loadPosts(directory, { drafts: true })).map(post => post.slug), ['draft', 'a', 'b', 'older']);
+  await put('2026-11-04-a.md', 'title: duplicate\ndate: 2026-11-04');
+  await assert.rejects(loadPosts(directory), /two files produce thoughts\/a.html/);
 });

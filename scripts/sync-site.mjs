@@ -3,17 +3,18 @@
 // --drafts includes draft posts.
 import { readFile, writeFile, readdir, mkdir, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { discoverPages } from './pages.mjs';
+import { digest, versionScripts, renderPageAssets } from './assets.mjs';
 import { loadPosts, renderPostList, renderPostPage, renderFeed, renderMathCss } from './posts.mjs';
 
 const check = process.argv.includes('--check');
 const origin = 'https://www.nmokey.com';
-const themeVersion = createHash('sha256').update(await readFile('docs/assets/js/theme-init.js')).digest('hex').slice(0, 12);
+const themeVersion = digest(await readFile('docs/assets/js/theme-init.js'));
 const posts = await loadPosts('posts', { drafts: process.argv.includes('--drafts') });
 const pages = new Map();
-for (const name of (await readdir('docs')).filter(name => name.endsWith('.html')).sort()) {
+for (const name of (await discoverPages('docs')).filter(name => !name.startsWith('thoughts/'))) {
   pages.set(name, await readFile(`docs/${name}`, 'utf8'));
 }
-pages.set('poker/index.html', await readFile('docs/poker/index.html', 'utf8'));
 for (const post of posts) pages.set(`thoughts/${post.slug}.html`, renderPostPage(post, origin));
 const list = /<!-- Generated post list -->[\s\S]*?<!-- End generated post list -->/;
 if (!list.test(pages.get('thoughts.html'))) throw new Error('docs/thoughts.html: missing generated post list markers');
@@ -27,8 +28,10 @@ async function output(path, content) {
   if (check) { console.error(`${path}: generated output is stale; run npm run sync`); stale = true; }
   else await writeFile(path, content);
 }
+const scripts = await versionScripts('docs/assets/js');
+for (const [name, content] of scripts) await output(`docs/assets/js/${name}`, content);
 // Math assets are written before pages so their version stamps match.
-await mkdir('docs/assets/temml', { recursive: true });
+if (!check) await mkdir('docs/assets/temml', { recursive: true });
 for (const name of ['Temml-Local.css', 'Temml.woff2']) {
   await output(`docs/assets/temml/${name}`, await readFile(`node_modules/temml/dist/${name}`));
 }
@@ -37,14 +40,18 @@ const files = new Map();
 for (const post of posts.filter(post => post.proof)) {
   files.set(`${post.slug}.md`, post.source).set(`${post.slug}.md.ots`, post.proof);
 }
-await mkdir('docs/thoughts', { recursive: true });
+if (!check) await mkdir('docs/thoughts', { recursive: true });
 for (const [name, content] of files) await output(`docs/thoughts/${name}`, content);
-for (const name of await readdir('docs/thoughts')) {
+for (const name of await readdir('docs/thoughts').catch(error => {
+  if (error.code === 'ENOENT') return [];
+  throw error;
+})) {
   if (pages.has(`thoughts/${name}`) || files.has(name)) continue;
   if (check) { console.error(`docs/thoughts/${name}: no matching published post; run npm run sync`); stale = true; }
   else await unlink(`docs/thoughts/${name}`);
 }
 for (let [name, html] of pages) {
+  html = renderPageAssets(name, html);
   const hashes = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
     .map(match => `'sha256-${createHash('sha256').update(match[1]).digest('base64')}'`);
   const policy = [
@@ -65,11 +72,21 @@ for (let [name, html] of pages) {
   html = html.replace(/\n  <!-- Generated site metadata -->[\s\S]*?<!-- End generated site metadata -->\n/g, '\n');
   html = html.replace(/\s*<link rel="canonical"[^>]*>/g, '');
   for (const match of html.matchAll(/(?:src|href)="(\/assets\/[^"?]+\.(?:js|css))(?:\?[^"]*)?"/g)) {
-    const digest = createHash('sha256').update(await readFile(`docs${match[1]}`)).digest('hex').slice(0, 12);
-    html = html.replace(match[0], match[0].split('=')[0] + `="${match[1]}?v=${digest}"`);
+    const content = scripts.get(match[1].replace('/assets/js/', '')) ?? await readFile(`docs${match[1]}`);
+    html = html.replace(match[0], match[0].split('=')[0] + `="${match[1]}?v=${digest(content)}"`);
   }
   const canonical = `${origin}/${name === 'index.html' ? '' : name.replace(/\/index\.html$/, '/')}`;
-  const metadata = `\n  <!-- Generated site metadata -->\n  <meta http-equiv="Content-Security-Policy" content="${policy}">\n  <meta name="referrer" content="strict-origin-when-cross-origin">\n  ${name === '404.html' ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}\n  <script src="/assets/js/theme-init.js?v=${themeVersion}"></script>\n  <!-- End generated site metadata -->\n`;
+  const analytics = name === 'poker/index.html' ? '' : `  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NK15EEMEB2"></script>
+  <script src="/assets/js/analytics.js?v=${digest(scripts.get('analytics.js'))}"></script>
+`;
+  const metadata = `
+  <!-- Generated site metadata -->
+  <meta http-equiv="Content-Security-Policy" content="${policy}">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  ${name === '404.html' ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}
+  <script src="/assets/js/theme-init.js?v=${themeVersion}"></script>
+${analytics}  <!-- End generated site metadata -->
+`;
   html = html.replace(/(<meta charset="utf-8">)\n?/, `$1${metadata}`);
   await output(`docs/${name}`, html);
 }

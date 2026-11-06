@@ -1,19 +1,4 @@
-/**
- * Main Stylesheet
- * 
- * Contains the design system (CSS variables), base styles, typography,
- * layout utilities, buttons, theme toggle, and home button styles.
- * 
- * This file serves as the foundation for the entire site's styling.
- * All theme-aware variables are defined here for easy customization.
- * 
- * @fileoverview Core styles and design system for nmokey.com
- */
-
-/* ============================================
-   DESIGN SYSTEM - Tailwind-like Variables
-   Easy to customize colors, spacing, etc.
-   ============================================ */
+/* Theme tokens, base styles, shared controls, and layout utilities. */
 
 :root {
   /* Colors - Dark Mode (Default) */
@@ -137,7 +122,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-
 }
 
 html {
@@ -160,7 +144,6 @@ body {
   position: relative;
   min-height: 100vh;
   transition: background-color var(--transition-base), color var(--transition-base);
-
 }
 
 /* ============================================
@@ -190,7 +173,6 @@ a {
   color: var(--color-primary);
   text-decoration: none;
   transition: color var(--transition-base);
-
 }
 
 a:hover {
@@ -237,58 +219,6 @@ img {
   padding: var(--space-16) 0;
   position: relative;
   z-index: 1;
-}
-
-/* ============================================
-   BUTTONS
-   ============================================ */
-
-.btn {
-  display: inline-block;
-  padding: var(--space-3) var(--space-6);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  color: var(--color-text);
-  background: rgba(30, 41, 59, 0.15); /* Very transparent dark background for frosted glass */
-  backdrop-filter: blur(4px) saturate(180%);
-  -webkit-backdrop-filter: blur(4px) saturate(180%);
-  border: 2px solid rgba(255, 255, 255, 0.1); /* Subtle border */
-  border-radius: var(--radius);
-
-  transition: all var(--transition-base);
-  text-decoration: none;
-  position: relative;
-}
-
-.btn:hover {
-  background: rgba(30, 41, 59, 0.25); /* Slightly more opaque on hover */
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  text-decoration: none;
-  color: var(--color-text);
-  border-color: rgba(255, 255, 255, 0.2); /* Slightly more visible border on hover */
-}
-
-/* Light mode frosted glass for buttons */
-[data-theme="light"] .btn {
-  background: rgba(255, 255, 255, 0.2); /* Very transparent white for light mode */
-  border: 2px solid rgba(0, 0, 0, 0.1); /* Subtle border for light mode */
-}
-
-[data-theme="light"] .btn:hover {
-  background: rgba(255, 255, 255, 0.3); /* Slightly more opaque on hover */
-  border-color: rgba(0, 0, 0, 0.15); /* Slightly more visible border on hover */
-}
-
-.btn-secondary {
-  background-color: transparent;
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-}
-
-.btn-secondary:hover {
-  background-color: var(--color-primary);
-  color: white;
 }
 
 /* ============================================
@@ -430,7 +360,7 @@ img {
   color: var(--color-text);
 }
 
-/* Front page resume link, where the menu used to sit beside the theme toggle */
+/* Homepage resume link */
 .resume-button {
   left: auto;
   right: calc(var(--space-6) + 60px);
@@ -512,7 +442,7 @@ a, button { cursor: pointer; }
     --cursor-link: url('/assets/images/cursors/square-link-light.svg') 10 10;
   }
 
-  a, button, [role="button"], html .site-menu {
+  a, button, [role="button"] {
     cursor: var(--cursor-link), pointer;
   }
 }

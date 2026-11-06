@@ -1,58 +1,57 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.mjs';
 
-// Keep regression tests deterministic and avoid sending test traffic to analytics.
-test.beforeEach(async ({ page }) => {
-  await page.route('https://www.googletagmanager.com/**', route => route.fulfill({body:'',contentType:'text/javascript'}));
-  await page.route('https://www.youtube.com/**', route => route.fulfill({body:'<html><body>Video fixture</body></html>',contentType:'text/html'}));
-});
+import { discoverPages } from '../../scripts/pages.mjs';
 
-test('all pages load without script errors or CSP violations', async ({ page }) => {
+const paths = (await discoverPages('docs')).map(name => name === 'index.html' ? '/' : `/${name.replace(/\/index\.html$/, '/')}`);
+
+async function smoke(page, theme) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
     if (message.type() === 'error' && /Content Security Policy|Refused to/i.test(message.text())) errors.push(message.text());
   });
-  for (const path of ['/', '/about.html', '/art.html', '/music.html', '/projects.html', '/thoughts.html', '/thoughts/learning-stuff.html', '/missing/nested/page']) {
-    const response = await page.goto(path);
-    expect(response.status()).toBe(path.startsWith('/missing') ? 404 : 200);
-    await expect(page.getByRole('button', {name:'Toggle menu'})).toHaveCount(0);
-    await expect(page.getByRole('button', {name:'Toggle theme'})).toBeVisible();
-    await expect(page.locator('#life-background-canvas')).toHaveCount(1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(theme => localStorage.setItem('theme', theme), theme);
+  for (const path of [...paths, '/missing/nested/page']) {
+    await test.step(path, async () => {
+      const response = await page.goto(path);
+      expect(response.status()).toBe(path.startsWith('/missing') ? 404 : 200);
+      await expect(page.locator('main')).toBeVisible();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      if (path === '/poker/') {
+        await expect(page.getByTitle('PocketSolver live poker decision model comparison')).toBeVisible();
+      } else {
+        const toggle = page.getByRole('button', { name: 'Toggle theme' });
+        await expect(toggle).toBeVisible();
+        await expect(page.locator('#life-background-canvas')).toHaveCount(1);
+        const bounds = await toggle.boundingBox();
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize().width);
+        await toggle.click();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme === 'dark' ? 'light' : 'dark');
+      }
+    });
   }
   expect(errors).toEqual([]);
-});
+}
 
-// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
-test.skip('keyboard menu is visible, retains sections, and closes with Escape', async ({ page }) => {
-  await page.goto('/');
-  const trigger = page.getByRole('button', {name:'Toggle menu'});
-  await trigger.press('Enter');
-  const portfolio = page.locator('.submenu-toggle').nth(0);
-  const random = page.locator('.submenu-toggle').nth(1);
-  await expect(portfolio).toBeVisible();
-  await expect(page.locator('#navMenu > ul')).toHaveCSS('opacity','1');
-  await portfolio.press('Space');
-  await random.press('Enter');
-  await expect(portfolio).toHaveAttribute('aria-expanded','true');
-  await expect(page.getByRole('link',{name:'art',exact:true})).toBeVisible();
-  await expect(page.getByRole('link',{name:'thoughts',exact:true})).toBeVisible();
-  await random.press('Escape');
-  await expect(trigger).toHaveAttribute('aria-expanded','false');
-  await expect(trigger).toBeFocused();
-});
+for (const theme of ['dark', 'light']) {
+  test(`every page works in ${theme} theme on desktop`, async ({ page }) => smoke(page, theme));
+}
 
-// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
-test.skip('hover transition between sections does not collapse either section', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#menuToggle').hover();
-  await page.locator('.submenu-toggle').nth(0).hover();
-  await page.locator('.submenu-toggle').nth(1).hover();
-  await expect(page.getByRole('link',{name:'art',exact:true})).toBeVisible();
-  await expect(page.getByRole('link',{name:'thoughts',exact:true})).toBeVisible();
-  await page.locator('.hero-name').hover();
-  await expect(page.locator('#menuToggle')).toHaveAttribute('aria-expanded','false');
-  await page.locator('#menuToggle').hover();
-  await expect(page.locator('.submenu-toggle').nth(0)).toHaveAttribute('aria-expanded','false');
+test.describe('mobile', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  for (const theme of ['dark', 'light']) {
+    test(`every page fits and controls work in ${theme} theme`, async ({ page }) => smoke(page, theme));
+  }
+  test('a post can be opened from Thoughts and its back link works', async ({ page }) => {
+    await page.goto('/thoughts.html');
+    await page.locator('.post-list a').first().tap();
+    await expect(page.locator('article.post')).toBeVisible();
+    await page.getByRole('link', { name: '← thoughts' }).tap();
+    await expect(page).toHaveURL(/thoughts\.html$/);
+  });
 });
 
 test('reduced motion keeps content still and theme usable', async ({ page }) => {
@@ -76,20 +75,4 @@ test('CSP blocks an injected inline script', async ({ page }) => {
     document.body.appendChild(script);
   });
   await expect(page.locator('html')).not.toHaveAttribute('data-injected','yes');
-});
-
-test.describe('touch viewport', () => {
-  test.use({ viewport:{width:390,height:844}, hasTouch:true, isMobile:true });
-  // Menu is hidden; re-enable when it comes back.
-  test.skip('tap navigation reaches a page and stays inside the viewport', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button',{name:'Toggle menu'}).tap();
-    await page.locator('.submenu-toggle').nth(0).tap();
-    await page.locator('.submenu-toggle').nth(1).tap();
-    const bounds = await page.locator('#navMenu').boundingBox();
-    expect(bounds.x).toBeGreaterThanOrEqual(0);
-    expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
-    await page.getByRole('link',{name:'art',exact:true}).tap();
-    await expect(page).toHaveURL(/art\.html$/);
-  });
 });

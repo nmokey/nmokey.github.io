@@ -1,16 +1,13 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
-import { resolve, dirname, extname } from 'node:path';
+import { resolve, extname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { HtmlValidate } from 'html-validate';
 import { JSDOM } from 'jsdom';
 import { createHash } from 'node:crypto';
+import { discoverPages } from './pages.mjs';
 
 const root = resolve('docs');
-const pages = [
-  'poker/index.html',
-  ...(await readdir(root)).filter(name => name.endsWith('.html')),
-  ...(await readdir(resolve(root, 'thoughts')).catch(() => [])).filter(name => name.endsWith('.html')).map(name => `thoughts/${name}`)
-];
+const pages = await discoverPages(root);
 const validator = new HtmlValidate({ extends: ['html-validate:recommended'] });
 const failures = [];
 for (const name of pages) {
@@ -44,11 +41,6 @@ for (const name of await readdir('docs/assets/js')) {
     try { execFileSync(process.execPath, ['--check', `docs/assets/js/${name}`], {stdio: 'pipe'}); }
     catch (error) { failures.push(String(error.stderr)); }
   }
-}
-// Check navigation data too: those links are rendered after loading the document.
-const config = await readFile('docs/assets/js/config.js', 'utf8');
-for (const [, href] of config.matchAll(/link:\s*"([^"]+)"/g)) {
-  try { await stat(resolve(root, `.${href}`)); } catch { failures.push(`config.js: missing ${href}`); }
 }
 const exceptions = JSON.parse(await readFile('scripts/asset-budget.json', 'utf8'));
 async function checkAssets(directory) {

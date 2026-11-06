@@ -29,19 +29,17 @@ after changing posts, templates, CSS, or JavaScript.
 | Post template, length indicators, and Markdown/math rendering | [scripts/posts.mjs](scripts/posts.mjs) |
 | Theme colors, typography, spacing, and base styles | [docs/assets/css/main.css](docs/assets/css/main.css) |
 | Component and page layouts | [docs/assets/css/components.css](docs/assets/css/components.css) |
-| Rotating roles, contact email, and menu data | [docs/assets/js/config.js](docs/assets/js/config.js) |
+| Rotating roles and contact email | [docs/assets/js/config.js](docs/assets/js/config.js) |
 | Theme toggle, footer, and home button | [docs/assets/js/components.js](docs/assets/js/components.js) |
 | Rotating text and scrolling behavior | [docs/assets/js/main.js](docs/assets/js/main.js) |
 | Homepage section navigation | [docs/assets/js/page-nav.js](docs/assets/js/page-nav.js) |
-| Game of Life background | [docs/assets/js/life-background.js](docs/assets/js/life-background.js) |
+| Game of Life rules | [docs/assets/js/life-grid.js](docs/assets/js/life-grid.js) |
+| Background rendering, fading, and persistence | [docs/assets/js/life-background.js](docs/assets/js/life-background.js) |
+| Shared styles/scripts and page discovery | [scripts/assets.mjs](scripts/assets.mjs) and [scripts/pages.mjs](scripts/pages.mjs) |
 | PocketSolver embed | [docs/poker/index.html](docs/poker/index.html) and [poker.css](docs/assets/css/poker.css) |
 
 `docs/thoughts/` is generated and managed by the sync script. Edit posts or their
 template rather than the output, and keep images in `docs/assets/`.
-
-The menu is currently hidden. Restoring it requires uncommenting the menu markup
-in the pages and post template, and the `renderNavigation()` call in `components.js`.
-The homepage résumé button remains available without the menu.
 
 ### Styling and behavior
 
@@ -53,7 +51,8 @@ Links change color on hover without an underline animation. The Game of Life
 background responds to pointer movement and pauses for reduced-motion preferences
 or a hidden tab. Its grid is saved in session storage between page visits, including
 back/forward navigation, so it continues within the same tab. Preserve reduced-motion
-support when changing animations.
+support when changing animations. Dead cells fade for 440 ms without affecting the
+simulation. `life-init.js` mounts the canvas; `life-grid.js` has no browser dependencies.
 
 When changing the first rotating role, update `cyclingRoles` in `config.js`, the
 initial text and accessible description in `index.html`, and the fallback in
@@ -116,16 +115,21 @@ npm run sync
 list, RSS feed, sitemap, robots file, MathML styles, canonical URLs, Content Security
 Policy metadata, and CSS/JavaScript version hashes. Keep the generated markers in
 authored pages. Changes to shared assets can update references across many pages;
-include those changes in the same commit.
+include those changes in the same commit. Shared style and script lists belong in
+`assets.mjs`, inside the generated styles/scripts markers. Analytics and the early
+theme script are part of generated metadata. The build also versions local static
+module imports (`import ... from './file.js'`); leave those generated query strings
+to sync. Keep browser scripts in `docs/assets/js/`.
 
 Use external JavaScript and CSS files for authored code. The Content Security Policy
 blocks executable inline scripts and HTML `style` attributes. JSON-LD hashes and
 math styling are handled by sync. YouTube frames are allowed on regular pages;
 the poker page has a separate frame policy for its hosted Streamlit app.
 
-New top-level HTML pages are discovered automatically. Nested pages other than
-generated posts must be registered in both `sync-site.mjs` and
-[check-site.mjs](scripts/check-site.mjs); `/poker/` is the existing example.
+HTML pages are discovered recursively by generation, validation, and browser smoke
+tests. `docs/thoughts/` remains exclusively generated. New authored pages should
+include the generated styles/scripts markers (copy an existing page). `/poker/`
+keeps its separate embed layout and asset list.
 
 Assets over 1 MiB fail validation unless their exact SHA-256 digest is listed in
 [scripts/asset-budget.json](scripts/asset-budget.json). Optimize new assets first;
@@ -147,7 +151,10 @@ npm run test:browser
 ```
 
 Playwright starts the local preview server or reuses one already running. Check
-the affected pages at narrow widths and in both themes.
+the affected pages at narrow widths and in both themes. The browser suite covers
+every discovered page on desktop and mobile in both themes, with external embeds
+stubbed. Unit tests cover grid rules and browser lifecycle; temporary-directory
+build tests cover publishing, cleanup, read-only checks, and cache versions.
 
 ## Deployment
 

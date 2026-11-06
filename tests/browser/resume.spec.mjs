@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.mjs';
 
 // Full Chromium includes the PDF viewer; the headless shell downloads PDFs.
 test.use({ channel: 'chromium' });

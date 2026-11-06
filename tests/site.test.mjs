@@ -29,61 +29,6 @@ async function page({ reducedMotion = false, storageBlocked = false } = {}) {
   assert.deepEqual(errors, [], 'No runtime errors during initialization');
   return { dom, window, document: window.document, motion, timers };
 }
-function pointer(window, target, type, pointerType = 'mouse') {
-  const event = new window.Event(type, { bubbles: type === 'pointerdown' });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
-  target.dispatchEvent(event);
-}
-
-// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
-test.skip('hovering across sections only expands; leaving resets the whole menu', async t => {
-  const { dom, window, document: d } = await page(); t.after(() => dom.window.close());
-  const menu = d.getElementById('siteMenu');
-  const trigger = d.getElementById('menuToggle');
-  const sections = [...d.querySelectorAll('.submenu-toggle')];
-  pointer(window, menu, 'pointerenter');
-  for (const section of sections) pointer(window, section.parentElement, 'pointerenter');
-  assert.equal(trigger.getAttribute('aria-expanded'), 'true');
-  assert.ok(sections.every(button => button.getAttribute('aria-expanded') === 'true'));
-  assert.ok([...d.querySelectorAll('.submenu')].every(list => !list.inert));
-  pointer(window, menu, 'pointerleave');
-  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
-  assert.ok(sections.every(button => button.getAttribute('aria-expanded') === 'false'));
-  assert.ok(d.getElementById('navMenu').inert);
-  pointer(window, menu, 'pointerenter');
-  assert.ok(sections.every(button => button.getAttribute('aria-expanded') === 'false'));
-});
-
-// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
-test.skip('keyboard activation, Escape and focus leaving support the whole menu', async t => {
-  const { dom, window, document: d } = await page(); t.after(() => dom.window.close());
-  const trigger = d.getElementById('menuToggle');
-  trigger.focus(); trigger.click();
-  const section = d.querySelector('.submenu-toggle');
-  section.focus(); section.click();
-  section.dispatchEvent(new window.KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
-  assert.equal(d.activeElement, trigger);
-  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
-  trigger.click();
-  d.querySelector('.hero-actions a').focus();
-  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
-});
-
-// Menu is hidden (commented out in the pages); re-enable these tests when it comes back.
-test.skip('touch ignores hover and can open, expand, and dismiss outside', async t => {
-  const { dom, window, document: d } = await page(); t.after(() => dom.window.close());
-  const menu = d.getElementById('siteMenu');
-  const trigger = d.getElementById('menuToggle');
-  pointer(window, menu, 'pointerenter', 'touch');
-  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
-  pointer(window, trigger, 'pointerdown', 'touch');
-  trigger.dispatchEvent(new window.MouseEvent('click', {bubbles:true, detail:1}));
-  d.querySelector('.submenu-toggle').click();
-  assert.equal(d.querySelector('.submenu-toggle').getAttribute('aria-expanded'), 'true');
-  pointer(window, d.querySelector('main'), 'pointerdown', 'touch');
-  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
-});
-
 test('reduced motion stops typing and skips theme transitions, including preference changes', async t => {
   const { dom, window, document: d, motion, timers } = await page({reducedMotion:true}); t.after(() => dom.window.close());
   assert.equal(d.getElementById('cyclingText').textContent, 'quant trader');

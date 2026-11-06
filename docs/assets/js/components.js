@@ -1,162 +1,4 @@
-/**
- * UI Components Module
- * 
- * Handles dynamic UI components including navigation menu, footer,
- * theme toggle, and home button. All components are initialized on DOM ready.
- * 
- * @fileoverview Component initialization and rendering for nmokey.com
- */
-
-/**
- * Gets the current page path from the browser
- * @returns {string} Current page pathname
- */
-function getCurrentPath() {
-  return window.location.pathname;
-}
-
-/**
- * Checks if a given link matches the current page
- * Handles edge cases like root/index pages
- * 
- * @param {string} link - The link to check (e.g., "about.html")
- * @returns {boolean} True if the link matches the current page
- */
-function isCurrentPage(link) {
-  const currentPath = getCurrentPath();
-  const pathSegments = currentPath.split('/').filter(segment => segment);
-  const lastSegment = pathSegments[pathSegments.length - 1] || '';
-  
-  // Handle root/index
-  if (currentPath === '/' || currentPath === '' || lastSegment === '' || lastSegment === 'index.html') {
-    return !link || link === '' || link === '/' || link === 'index.html';
-  }
-  
-  // Compare filenames (with or without .html extension)
-  const cleanLink = link.split('/').pop().replace(/\.html$/, '');
-  const cleanLastSegment = lastSegment.replace(/\.html$/, '');
-  
-  return cleanLastSegment === cleanLink;
-}
-
-/**
- * Renders the navigation menu dynamically from navigationData
- * Creates menu items with submenus and highlights current page.
- * Submenus stay expanded until the pointer leaves the whole menu.
- * 
- * @returns {void}
- */
-function renderNavigation() {
-  const container = document.getElementById('siteMenu');
-  const nav = document.getElementById('navMenu');
-  const trigger = document.getElementById('menuToggle');
-  if (!container || !nav || !trigger) return;
-
-  const list = document.createElement('ul');
-  navigationData.pages.forEach((item, index) => {
-    const row = document.createElement('li');
-    if (item.subpages) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'submenu-toggle';
-      button.textContent = item.name;
-      button.setAttribute('aria-expanded', 'false');
-      button.setAttribute('aria-controls', `submenu-${index}`);
-      const submenu = document.createElement('ul');
-      submenu.className = 'submenu';
-      submenu.id = `submenu-${index}`;
-      submenu.inert = true;
-      const expand = () => {
-        row.classList.add('submenu-expanded');
-        button.setAttribute('aria-expanded', 'true');
-        submenu.inert = false;
-      };
-      row.addEventListener('pointerenter', event => {
-        if (event.pointerType === 'mouse') expand();
-      });
-      button.addEventListener('click', expand);
-      item.subpages.forEach(page => submenu.appendChild(makeLink(page)));
-      row.append(button, submenu);
-    } else {
-      row.appendChild(makeLink(item).firstElementChild);
-    }
-    list.appendChild(row);
-  });
-  nav.replaceChildren(list);
-
-  function makeLink(page) {
-    const row = document.createElement('li');
-    const link = document.createElement('a');
-    link.href = page.link;
-    link.textContent = page.name;
-    if (isCurrentPage(page.link)) {
-      link.className = 'current';
-      link.setAttribute('aria-current', 'page');
-    }
-    row.appendChild(link);
-    return row;
-  }
-
-  let open = false;
-  let pinned = false;
-  let keyboardInteraction = false;
-  function setOpen(value, returnFocus = false) {
-    open = value;
-    if (!value && (returnFocus || nav.contains(document.activeElement))) {
-      trigger.focus({ preventScroll: true });
-    }
-    container.classList.toggle('is-open', value);
-    trigger.setAttribute('aria-expanded', String(value));
-    nav.inert = !value;
-    if (!value) {
-      pinned = false;
-      nav.querySelectorAll('.submenu-toggle').forEach(button => {
-        button.setAttribute('aria-expanded', 'false');
-        button.parentElement.classList.remove('submenu-expanded');
-        document.getElementById(button.getAttribute('aria-controls')).inert = true;
-      });
-    }
-  }
-  container.addEventListener('pointerenter', event => {
-    if (event.pointerType === 'mouse') setOpen(true);
-  });
-  container.addEventListener('pointerdown', () => { keyboardInteraction = false; });
-  container.addEventListener('pointerleave', event => {
-    if (event.pointerType === 'mouse' && !pinned && !keyboardInteraction) setOpen(false);
-  });
-  trigger.addEventListener('click', event => {
-    // First mouse click pins a hover-open panel; another click closes it.
-    if (event.detail > 0 && open && !pinned) {
-      pinned = true;
-    } else {
-      pinned = !open;
-      setOpen(!open);
-    }
-  });
-  container.addEventListener('keydown', event => {
-    keyboardInteraction = true;
-    if (event.key === 'Escape' && open) {
-      event.preventDefault();
-      setOpen(false, true);
-    }
-  });
-  container.addEventListener('focusout', event => {
-    if (!container.contains(event.relatedTarget)) {
-      keyboardInteraction = false;
-      setOpen(false);
-    }
-  });
-  document.addEventListener('pointerdown', event => {
-    if (!container.contains(event.target)) setOpen(false);
-  });
-}
-
-/**
- * Renders the site footer with contact information
- * Uses footerConfig for content
- * 
- * @returns {void}
- */
+/** Shared footer, theme toggle, and home link. */
 function renderFooter() {
   const footer = document.getElementById('footer');
   if (!footer) return;
@@ -173,19 +15,6 @@ function renderFooter() {
   `;
 }
 
-/**
- * Initializes the theme toggle button
- * 
- * Creates a button that switches between dark and light themes with a
- * radial transition effect. Theme preference is saved to localStorage.
- * 
- * Features:
- * - Radial wipe animation from button position
- * - SVG icons (sun/moon) that change based on current theme
- * - Persistent theme preference via localStorage
- * 
- * @returns {void}
- */
 function initThemeToggle() {
   // Get saved theme or default to dark
   let savedTheme = 'dark';
@@ -239,14 +68,6 @@ function initThemeToggle() {
   });
 }
 
-/**
- * Initializes the home button (only on non-homepage pages)
- * 
- * Creates a home button in the top-left corner that links back to the homepage.
- * The button only appears on pages other than index.html.
- * 
- * @returns {void}
- */
 function initHomeButton() {
   // Check if we're on the homepage
   const currentPath = window.location.pathname;
@@ -280,13 +101,7 @@ function initHomeButton() {
   }
 }
 
-/**
- * Initializes all UI components when DOM is ready
- * Called automatically when the page loads
- */
 document.addEventListener('DOMContentLoaded', function() {
-  // Menu hidden so visitors only see the front page; uncomment (and the markup in each page) to restore.
-  // renderNavigation();
   renderFooter();
   initThemeToggle();
   initHomeButton();
