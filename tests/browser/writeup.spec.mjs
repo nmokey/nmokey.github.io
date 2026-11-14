@@ -11,6 +11,8 @@ for (const width of [390, 1440]) {
     await page.goto('/poker/writeup/');
     await expect(page.locator('.chart-panel svg')).toHaveCount(10);
     await expect(page.locator('.member-name')).toHaveCount(13);
+    await expect(page.locator('a.article-home')).toHaveCount(0);
+    await expect(page.locator('#live-demo a[target="_blank"]')).toHaveAttribute('href', /streamlit\.app\/$/);
     expect(await page.locator('.math math').count()).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.selectOption('#hand-choice', '2');
@@ -34,3 +36,15 @@ for (const width of [390, 1440]) {
     expect(errors).toEqual([]);
   });
 }
+
+ test('demo provides a top-level wake link and can reload its frame', async ({ page }) => {
+  let requests = 0;
+  await page.route('https://*.streamlit.app/**', route => { requests++; return route.fulfill({ body: '<!doctype html><title>Demo fixture</title>', contentType: 'text/html' }); });
+  await page.goto('/poker/');
+  const direct = page.getByRole('link', { name: 'Open demo in new tab' });
+  await expect(direct).toHaveAttribute('href', /streamlit\.app\/$/);
+  await expect(direct).toHaveAttribute('target', '_blank');
+  await expect.poll(() => requests).toBe(1);
+  await page.getByRole('button', { name: 'Reload demo', exact: true }).click();
+  await expect.poll(() => requests).toBe(2);
+});

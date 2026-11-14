@@ -59,4 +59,4 @@
 /* Print metadata uses line breaks; the browser wraps intact names naturally. */
 #title-block-header .author br{display:none}
 
-.references{list-style:none;padding-left:0}.article-home{display:block;font: .75rem var(--sans);margin-bottom:2rem;text-decoration:none}
+.references{list-style:none;padding-left:0}

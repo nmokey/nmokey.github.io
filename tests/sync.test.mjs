@@ -15,7 +15,7 @@ async function fixture(t) {
   }
   await symlink(resolve('node_modules'), join(root, 'node_modules'), 'dir');
   const put = (name, content) => writeFile(join(root, name), content);
-  for (const name of ['theme-init', 'analytics', 'config', 'components', 'main', 'life-init']) {
+  for (const name of ['theme-init', 'analytics', 'config', 'components', 'main', 'life-init', 'poker-embed']) {
     await put(`docs/assets/js/${name}.js`, '// fixture\n');
   }
   await put('docs/assets/js/life-grid.js', 'export const cells = 1;\n');

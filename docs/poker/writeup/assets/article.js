@@ -270,6 +270,8 @@ if (liveButton) liveButton.addEventListener('click', () => {
   frame.src = 'https://nmokey-poker-decision-model-deploystreamlitapp-codexdepl-dhuhge.streamlit.app/?embed=true';
   frame.loading = 'lazy'; frame.referrerPolicy = 'strict-origin-when-cross-origin';
   document.getElementById('demo-frame').append(frame); liveButton.hidden = true;
+  const reload = document.getElementById('reload-article-demo');
+  if (reload) { reload.hidden = false; reload.addEventListener('click', () => { frame.src = frame.getAttribute('src'); }); }
 });
 const embeddedData = document.getElementById('report-data');
 const loadData = embeddedData

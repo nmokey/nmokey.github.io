@@ -44,8 +44,6 @@ for (const href of ['assets/export.css', '/assets/temml/Temml-Local.css', 'asset
   const link = d.createElement('link');link.rel = 'stylesheet';link.href = href;d.head.append(link);
 }
 const script = d.createElement('script'); script.src = 'assets/article.js'; script.defer = true; d.body.append(script);
-const home = d.createElement('a'); home.href = '/projects.html'; home.textContent = '← Projects'; home.className = 'article-home';
-d.querySelector('main').prepend(home);
-await writeFile(`${destination}/index.html`, '<!DOCTYPE html>\n' + d.documentElement.outerHTML.replace(/[ \t]+$/gm, '').replace(/defer=""/g, 'defer') + '\n');
-await writeFile(`${destination}/assets/article.css`, (await readFile(`${destination}/assets/article.css`, 'utf8')) + '\n.references{list-style:none;padding-left:0}.article-home{display:block;font: .75rem var(--sans);margin-bottom:2rem;text-decoration:none}\n');
+await writeFile(`${destination}/index.html`, '<!DOCTYPE html>\n' + d.documentElement.outerHTML.replace(/[ \t]+$/gm, '').replace(/(defer|hidden)=""/g, '$1') + '\n');
+await writeFile(`${destination}/assets/article.css`, (await readFile(`${destination}/assets/article.css`, 'utf8')) + '\n.references{list-style:none;padding-left:0}\n');
 console.log(`Imported research article to ${destination}/`);
