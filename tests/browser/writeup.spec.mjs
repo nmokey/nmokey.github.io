@@ -12,7 +12,7 @@ for (const width of [390, 1440]) {
     await expect(page.locator('.chart-panel svg')).toHaveCount(10);
     await expect(page.locator('.member-name')).toHaveCount(13);
     await expect(page.locator('a.article-home')).toHaveCount(0);
-    await expect(page.locator('#live-demo a[target="_blank"]')).toHaveAttribute('href', /streamlit\.app\/$/);
+    await expect(page.locator('#live-demo a[target="_blank"]')).toHaveAttribute('href', /streamlit\.app\/\?embed_options=light_theme$/);
     expect(await page.locator('.math math').count()).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.selectOption('#hand-choice', '2');
@@ -44,8 +44,10 @@ for (const width of [390, 1440]) {
   await page.route('https://*.streamlit.app/**', route => { requests++; return route.fulfill({ body: '<!doctype html><title>Demo fixture</title>', contentType: 'text/html' }); });
   await page.goto('/poker/');
   const direct = page.getByRole('link', { name: 'Open demo in new tab' });
-  await expect(direct).toHaveAttribute('href', /streamlit\.app\/$/);
+  await expect(direct).toHaveAttribute('href', /streamlit\.app\/\?embed_options=light_theme$/);
   await expect(direct).toHaveAttribute('target', '_blank');
+  const source = await page.locator('iframe').first().getAttribute('src');
+  expect(new URL(source).searchParams.get('embed_options')).toBe('light_theme');
   await expect.poll(() => requests).toBe(1);
   await page.getByRole('button', { name: 'Reload demo', exact: true }).click();
   await expect.poll(() => requests).toBe(2);
@@ -57,6 +59,8 @@ test('writeup embeds the demo immediately and reloads it on request', async ({ p
   await page.goto('/poker/writeup/');
   await expect(page.getByTitle('PocketSolver live held-out hand comparison')).toBeVisible();
   await expect(page.locator('#load-demo')).toHaveCount(0);
+  const source = await page.locator('iframe').first().getAttribute('src');
+  expect(new URL(source).searchParams.get('embed_options')).toBe('light_theme');
   await expect.poll(() => requests).toBe(1);
   await page.getByRole('button', { name: 'Reload demo', exact: true }).click();
   await expect.poll(() => requests).toBe(2);
