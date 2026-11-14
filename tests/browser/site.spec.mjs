@@ -24,7 +24,7 @@ async function smoke(page, theme) {
       } else if (path === '/poker/writeup/') {
         await expect(page.locator('.chart-panel svg')).toHaveCount(10);
         await expect(page.locator('.project-brand')).toHaveText('ACM AI Projects');
-        await expect(page.locator('iframe')).toHaveCount(0);
+        await expect(page.getByTitle('PocketSolver live held-out hand comparison')).toBeVisible();
       } else {
         const toggle = page.getByRole('button', { name: 'Toggle theme' });
         await expect(toggle).toBeVisible();

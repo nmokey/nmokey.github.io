@@ -264,14 +264,10 @@ function holdemWidget(host, data) {
   });
   enhance(host, chartFigure(specs));
 }
-const liveButton = document.getElementById('load-demo');
-if (liveButton) liveButton.addEventListener('click', () => {
-  const frame = make('iframe'); frame.title = 'PocketSolver live held-out hand comparison';
-  frame.src = 'https://nmokey-poker-decision-model-deploystreamlitapp-codexdepl-dhuhge.streamlit.app/?embed=true';
-  frame.loading = 'lazy'; frame.referrerPolicy = 'strict-origin-when-cross-origin';
-  document.getElementById('demo-frame').append(frame); liveButton.hidden = true;
-  const reload = document.getElementById('reload-article-demo');
-  if (reload) { reload.hidden = false; reload.addEventListener('click', () => { frame.src = frame.getAttribute('src'); }); }
+const liveFrame = document.querySelector('#demo-frame iframe');
+const reloadDemo = document.getElementById('reload-article-demo');
+if (liveFrame && reloadDemo) reloadDemo.addEventListener('click', () => {
+  liveFrame.src = liveFrame.getAttribute('src');
 });
 const embeddedData = document.getElementById('report-data');
 const loadData = embeddedData

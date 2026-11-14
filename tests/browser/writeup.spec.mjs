@@ -29,7 +29,9 @@ for (const width of [390, 1440]) {
     await expect(models.locator('.chart-point.is-selected')).toHaveCount(0);
     await models.locator('summary').click();
     await expect(models.locator('table')).toBeVisible();
-    await expect(page.locator('iframe')).toHaveCount(0);
+    await expect(page.getByTitle('PocketSolver live held-out hand comparison')).toBeVisible();
+    await expect(page.locator('#load-demo')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Reload demo', exact: true })).toBeVisible();
     for (const file of ['index.pdf', 'pocketsolver-latex.zip', 'pocketsolver-web.zip']) {
       expect((await request.get(`/poker/writeup/${file}`)).ok()).toBe(true);
     }
@@ -44,6 +46,17 @@ for (const width of [390, 1440]) {
   const direct = page.getByRole('link', { name: 'Open demo in new tab' });
   await expect(direct).toHaveAttribute('href', /streamlit\.app\/$/);
   await expect(direct).toHaveAttribute('target', '_blank');
+  await expect.poll(() => requests).toBe(1);
+  await page.getByRole('button', { name: 'Reload demo', exact: true }).click();
+  await expect.poll(() => requests).toBe(2);
+});
+
+test('writeup embeds the demo immediately and reloads it on request', async ({ page }) => {
+  let requests = 0;
+  await page.route('https://*.streamlit.app/**', route => { requests++; return route.fulfill({ body: '<!doctype html><title>Demo fixture</title>', contentType: 'text/html' }); });
+  await page.goto('/poker/writeup/');
+  await expect(page.getByTitle('PocketSolver live held-out hand comparison')).toBeVisible();
+  await expect(page.locator('#load-demo')).toHaveCount(0);
   await expect.poll(() => requests).toBe(1);
   await page.getByRole('button', { name: 'Reload demo', exact: true }).click();
   await expect.poll(() => requests).toBe(2);
