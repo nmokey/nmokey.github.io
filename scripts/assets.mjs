@@ -29,6 +29,8 @@ export async function versionScripts(directory) {
 
 /** Shared assets are generated inside explicit markers; page content stays authored. */
 export function renderPageAssets(name, html) {
+  // The Quarto research article carries its own layout and static math assets.
+  if (name === 'poker/writeup/index.html') return html;
   const poker = name === 'poker/index.html';
   const styles = poker ? ['css/poker.css'] : ['css/main.css', 'css/components.css'];
   if (name === '404.html') styles.push('css/404.css');

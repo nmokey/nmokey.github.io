@@ -21,6 +21,10 @@ async function smoke(page, theme) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       if (path === '/poker/') {
         await expect(page.getByTitle('PocketSolver live poker decision model comparison')).toBeVisible();
+      } else if (path === '/poker/writeup/') {
+        await expect(page.locator('.chart-panel svg')).toHaveCount(10);
+        await expect(page.locator('.project-brand')).toHaveText('ACM AI Projects');
+        await expect(page.locator('iframe')).toHaveCount(0);
       } else {
         const toggle = page.getByRole('button', { name: 'Toggle theme' });
         await expect(toggle).toBeVisible();

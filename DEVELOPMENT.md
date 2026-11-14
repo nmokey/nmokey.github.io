@@ -164,3 +164,21 @@ deploys it to GitHub Pages. The custom domain is set in [docs/CNAME](docs/CNAME)
 
 Review the source and generated diff before pushing. Pushing to `main` publishes
 the site, so get the owner's approval before doing so.
+
+## PocketSolver research article
+
+The standalone article lives at `/poker/writeup/`. Build it in the
+`Poker-Decision-Model` repository, then import the reviewed output here:
+
+```sh
+node scripts/import-poker-writeup.mjs /absolute/path/to/report/_site
+npm run sync
+npm run verify
+npm run test:browser
+```
+
+The importer preserves the article layout and figures, externalizes static styles,
+renders equations as local MathML, and removes unused Quarto browser dependencies.
+The article participates in page discovery, link/CSP validation, the sitemap, and
+browser smoke checks. Its embedded JSON is data; executable inline scripts remain
+blocked. Shared site theme controls are omitted from this standalone article.

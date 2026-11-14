@@ -31,8 +31,8 @@ for (const name of pages) {
     }
   }
   for (const script of document.querySelectorAll('script:not([src])')) {
-    if (script.type !== 'application/ld+json') failures.push(`${name}: executable inline script`);
-    else try { JSON.parse(script.textContent); } catch { failures.push(`${name}: invalid JSON-LD`); }
+    if (!['application/ld+json', 'application/json'].includes(script.type)) failures.push(`${name}: executable inline script`);
+    else try { JSON.parse(script.textContent); } catch { failures.push(`${name}: invalid JSON data`); }
   }
   if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) failures.push(`${name}: missing CSP`);
 }

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+
+<meta charset="utf-8">
+  <!-- Generated site metadata -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self'; img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; frame-src https://nmokey-poker-decision-model-deploystreamlitapp-codexdepl-dhuhge.streamlit.app; font-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="canonical" href="https://www.nmokey.com/poker/writeup/">
+  <script src="/assets/js/theme-init.js?v=97c14fe98fda"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NK15EEMEB2"></script>
+  <script src="/assets/js/analytics.js?v=1c50af9ccecc"></script>
+  <!-- End generated site metadata -->
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ryan Zheng, Amy Sun, Rain Piao, Connier Wu, Aaron Lee, Nicholas Park, Maksim Fu, Sam Jiang, Emily Du, Justin Zhang, Alexander An, Sumedh Kamat, Jerry Huang">
+<meta name="dcterms.date" content="2026-11-13">
+<meta name="description" content="A structured poker decision model, scenario-grouped evaluation, and experiments with opponent history.">
+
+<title>PocketSolver</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="assets/export.css"><link rel="stylesheet" href="/assets/temml/Temml-Local.css?v=544f4e3fee4c"><link rel="stylesheet" href="assets/article.css"></head>
+
+<body>
+
+<main class="content" id="article"><a href="/projects.html" class="article-home">← Projects</a>
+<p class="project-brand">ACM AI Projects</p>
+
+<header id="title-block-header">
+<h1 class="title">PocketSolver</h1>
+<p class="subtitle">Learning to score poker decisions</p>
+<p class="author"><span class="member-name">Ryan Zheng</span>, <span class="member-name">Amy Sun</span>, <span class="member-name">Rain Piao</span>, <span class="member-name">Connier Wu</span>, <span class="member-name">Aaron Lee</span>, <span class="member-name">Nicholas Park</span>, <span class="member-name">Maksim Fu</span>, <span class="member-name">Sam Jiang</span>, <span class="member-name">Emily Du</span>, <span class="member-name">Justin Zhang</span>, <span class="member-name">Alexander An</span>, <span class="member-name">Sumedh Kamat</span>, <span class="member-name">Jerry Huang</span></p>
+
+<p class="date">November 13, 2026</p>
+<div class="abstract">
+<div class="abstract-title">Abstract</div>
+<p>Poker decisions combine visible cards, betting history, hidden information, and a changing menu of possible actions. We study a compact alternative to generating an answer: jointly encode the situation and its candidate actions, then score each action with a shared prediction head. We compare four pretrained encoders and two heads on a 10,000-example PokerBench development pool using five scenario-grouped folds. ModernBERT with a linear head has the highest observed exact-action agreement, while all eight transformer variants improve log loss over a linear candidate baseline. We also investigate causal opponent-history summaries in controlled Leduc forecasting and observed-action prediction from real Hold’em histories. History improves the controlled forecasting task, but the current summaries do not establish a benefit for the Hold’em transformer. PocketSolver makes the decision model available in an interactive demonstration. These experiments measure reference or observed action agreement; they do not establish profitable or unexploitable play.</p>
+</div>
+</header>
+
+<nav id="TOC" role="doc-toc" aria-labelledby="toc-title">
+    <h2 id="toc-title">Contents</h2>
+
+  <ul>
+  <li><a href="#poker-as-a-structured-decision-problem" id="toc-poker-as-a-structured-decision-problem"><span class="header-section-number">1</span> Poker as a structured decision problem</a></li>
+  <li><a href="#scoring-actions-in-one-forward-pass" id="toc-scoring-actions-in-one-forward-pass"><span class="header-section-number">2</span> Scoring actions in one forward pass</a>
+  <ul>
+  <li><a href="#joint-encoding-and-a-shared-head" id="toc-joint-encoding-and-a-shared-head"><span class="header-section-number">2.1</span> Joint encoding and a shared head</a></li>
+  <li><a href="#what-the-interface-guarantees" id="toc-what-the-interface-guarantees"><span class="header-section-number">2.2</span> What the interface guarantees</a></li>
+  </ul></li>
+  <li><a href="#evaluating-beyond-repeated-scenarios" id="toc-evaluating-beyond-repeated-scenarios"><span class="header-section-number">3</span> Evaluating beyond repeated scenarios</a>
+  <ul>
+  <li><a href="#sources-and-splits" id="toc-sources-and-splits"><span class="header-section-number">3.1</span> Sources and splits</a></li>
+  <li><a href="#baselines-training-and-metrics" id="toc-baselines-training-and-metrics"><span class="header-section-number">3.2</span> Baselines, training, and metrics</a></li>
+  </ul></li>
+  <li><a href="#what-do-the-models-learn" id="toc-what-do-the-models-learn"><span class="header-section-number">4</span> What do the models learn?</a>
+  <ul>
+  <li><a href="#better-probability-quality-modest-accuracy-gains" id="toc-better-probability-quality-modest-accuracy-gains"><span class="header-section-number">4.1</span> Better probability quality, modest accuracy gains</a></li>
+  <li><a href="#street-level-behavior-and-illustrative-mistakes" id="toc-street-level-behavior-and-illustrative-mistakes"><span class="header-section-number">4.2</span> Street-level behavior and illustrative mistakes</a></li>
+  </ul></li>
+  <li><a href="#does-opponent-history-help" id="toc-does-opponent-history-help"><span class="header-section-number">5</span> Does opponent history help?</a>
+  <ul>
+  <li><a href="#controlled-forecasting-in-leduc" id="toc-controlled-forecasting-in-leduc"><span class="header-section-number">5.1</span> Controlled forecasting in Leduc</a></li>
+  <li><a href="#connecting-histories-to-real-holdem-inputs" id="toc-connecting-histories-to-real-holdem-inputs"><span class="header-section-number">5.2</span> Connecting histories to real Hold’em inputs</a></li>
+  </ul></li>
+  <li><a href="#explore-pocketsolver" id="toc-explore-pocketsolver"><span class="header-section-number">6</span> Explore PocketSolver</a></li>
+  <li><a href="#limitations-and-next-steps" id="toc-limitations-and-next-steps"><span class="header-section-number">7</span> Limitations and next steps</a></li>
+  <li><a href="#reproducibility-and-complete-results" id="toc-reproducibility-and-complete-results"><span class="header-section-number">8</span> Reproducibility and complete results</a></li>
+  <li><a href="#references" id="toc-references">References</a></li>
+  </ul>
+</nav>
+<div class="article-links">
+<p><a href="index.pdf">Read the PDF</a> · <a href="pocketsolver-latex.zip">LaTeX source</a> · <a href="https://github.com/nmokey/Poker-Decision-Model">Code</a> · <a href="https://www.nmokey.com/poker/">Full demo</a> · <a href="generated/provenance.json">Result provenance</a></p>
+</div>
+<div class="draft-note">
+<p>Working research draft · Related work remains to be finalized.</p>
+</div>
+<h1 data-number="1" id="poker-as-a-structured-decision-problem"><span class="header-section-number">1</span> Poker as a structured decision problem</h1>
+<p>A poker hand asks a deceptively compact question: <strong>What should Hero do?</strong> The answer depends on the visible cards, position, pot, previous actions, and the available choices. Calling and folding are distinct actions; betting 28 big blinds and betting 51 big blinds are also distinct actions. A model that chooses the right action type can still miss the reference by choosing a different amount.</p>
+<p>Our starting point is to make those choices explicit. Rather than ask a language model to write an answer and parse it back into an action, we supply the candidate actions alongside the situation. The model returns one score for each candidate. This preserves the exact supplied sizes and supports menus of different lengths.</p>
+<p><a href="#fig-hand" class="quarto-xref">Figure&nbsp;1</a> shows a recorded decision and the scores assigned by the deployed BERT Mini model. The online explorer includes a postflop success, a preflop success, and an action-type mistake. They were selected to illustrate behavior, rather than estimate performance. Each example was held out by this specific checkpoint.</p>
+<div id="fig-hand" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-hand-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="interactive-figure" data-widget="hand">
+<p><img class="static-fallback" src="generated/figures/hand.svg" alt="A held-out postflop decision, its candidate actions, BERT Mini probabilities, and the reference action."></p>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hand-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: A held-out decision scored by BERT Mini’s linear head. The printed example matches the explorer’s default hand. Probabilities are a softmax over the supplied actions; they are not estimated solver mixing frequencies. The online reference is revealed on request and is excluded from model inputs.
+</figcaption>
+</figure>
+</div>
+<p>The project separates three questions. First, can a structured encoder learn to agree with PokerBench reference actions? Second, can previous behavior help predict an opponent’s next action? Third, does appending those histories improve a transformer on real Hold’em decisions? These questions use different targets and data, so their scores should be interpreted within each experiment.</p>
+<h1 data-number="2" id="scoring-actions-in-one-forward-pass"><span class="header-section-number">2</span> Scoring actions in one forward pass</h1>
+<h2 data-number="2.1" id="joint-encoding-and-a-shared-head" class="anchored"><span class="header-section-number">2.1</span> Joint encoding and a shared head</h2>
+<p>The input is a context string and an ordered list of candidate actions. The encoder adapter adds the fixed question, “What should Hero do?” We serialize the state, question, and all candidates into one sequence with separator tokens. A pretrained encoder produces contextual representations for every token. For each candidate, we average the representations of its own tokens and apply the same scoring head.</p>
+<p>For candidate <span class="math inline"><math><msub><mi>a</mi><mi>i</mi></msub></math></span> with token positions <span class="math inline"><math><msub><mi>S</mi><mi>i</mi></msub></math></span>, the model computes</p>
+<p><span class="math display"><math display="block" class="tml-display article-style-0"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>|</mi><msub><mi>S</mi><mi>i</mi></msub><mi>|</mi></mrow></mfrac><mrow><munder><mo movablelimits="false">∑</mo><mrow><mi>t</mi><mo>∈</mo><msub><mi>S</mi><mi>i</mi></msub></mrow></munder></mrow><msub><mi>H</mi><mi>t</mi></msub><mo separator="true">,</mo><mspace width="2em"></mspace><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><msub><mi>g</mi><mi>θ</mi></msub><mrow><mo fence="true" form="prefix" stretchy="false">(</mo><msub><mi>h</mi><mi>i</mi></msub><mo fence="true" form="postfix" stretchy="false">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"></mspace><mi>p</mi><mrow><mo fence="true" form="prefix" stretchy="false">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo lspace="0.22em" rspace="0.22em" stretchy="false">|</mo><mi>x</mi><mo separator="true">,</mo><mi>A</mi><mo fence="true" form="postfix" stretchy="false">)</mo></mrow><mo>=</mo><mfrac><mrow><mrow><mi>exp</mi><mo>⁡</mo><mspace width="0.1667em"></mspace></mrow><msub><mi>z</mi><mi>i</mi></msub></mrow><mrow><msub><mo movablelimits="false">∑</mo><mrow><mi>j</mi><mo>∈</mo><mi>A</mi></mrow></msub><mrow><mi>exp</mi><mo>⁡</mo><mspace width="0.1667em"></mspace></mrow><msub><mi>z</mi><mi>j</mi></msub></mrow></mfrac><mi>.</mi></mrow></math></span></p>
+<p>Here <span class="math inline"><math><mi>H</mi></math></span> is the encoder output for the joint sequence and <span class="math inline"><math><mi>A</mi></math></span> is the supplied menu. The head <span class="math inline"><math><msub><mi>g</mi><mi>θ</mi></msub></math></span> is either a linear projection or a two-layer MLP with a ReLU activation. Training updates both the encoder and head using cross-entropy on the reference candidate index. Candidate padding is masked before normalization.</p>
+<div id="fig-architecture" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-architecture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="interactive-figure" data-widget="architecture">
+<p><img class="static-fallback" src="generated/figures/architecture.svg" alt="State, question and all candidates pass through one encoder, candidate pooling, and a shared scoring head."></p>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-architecture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: All options share one encoder pass and one scoring head. Candidate representations can attend to the context and to other candidates. The web illustration highlights whole action spans schematically; it does not display exact tokenizer boundaries or measured attention weights.
+</figcaption>
+</figure>
+</div>
+<p>The design reuses pretrained language representations in the spirit of encoder fine-tuning <span class="citation" data-cites="bert">(<a href="#ref-bert" role="doc-biblioref">Devlin et al. 2019</a>)</span>. It avoids generating an action token by token, but a single forward pass is not itself a measured speed advantage. Sequence length, model size, hardware, batching, and serving overhead all affect latency.</p>
+<h2 data-number="2.2" id="what-the-interface-guarantees" class="anchored"><span class="header-section-number">2.2</span> What the interface guarantees</h2>
+<p>The input boundary keeps labels and source identifiers separate from context and candidates. Contexts contain only cards already dealt and permitted visible information. We do not invent missing stacks or opponent profiles. Inputs that exceed the configured token limit fail explicitly rather than silently losing state or candidate tokens.</p>
+<p>One limitation follows from joint encoding: candidate order is visible through positional encodings. Sharing a head does not make the model permutation invariant. Candidate-order augmentation and explicit order-robustness evaluation remain natural follow-up experiments. The model can choose only among the supplied candidates; it does not establish that those candidates exhaust legal or useful poker actions.</p>
+<h1 data-number="3" id="evaluating-beyond-repeated-scenarios"><span class="header-section-number">3</span> Evaluating beyond repeated scenarios</h1>
+<h2 data-number="3.1" id="sources-and-splits" class="anchored"><span class="header-section-number">3.1</span> Sources and splits</h2>
+<p>Our primary action-choice experiment uses the pinned PokerBench training sources <span class="citation" data-cites="pokerbench">(<a href="#ref-pokerbench" role="doc-biblioref">Zhuang et al. 2025</a>)</span>. The source audit validates 63,200 preflop rows and 500,000 postflop rows. The development working pool samples 5,000 examples from each source, giving 10,000 examples in total. This sampling balance describes the experiment; it is not an estimate of the frequency of these situations in play.</p>
+<p>An early walkthrough used a context-grouped 8,000/2,000 split. Identical contexts never crossed that boundary, but related scenarios often did: 91.8% of validation rows had a scenario group represented in training. We therefore use a broader, answer-free scenario grouping for the model comparison reported here.</p>
+<p>Preflop groups use the full previous betting history. Postflop groups use the sorted ranks of the first three board cards, keeping suit variants and later streets together. Across the five maintained folds, neither specified scenario groups nor exact contexts overlap between training and held-out examples. Every example receives exactly one held-out prediction per model. This grouping is a specific stress test; it cannot establish independence under every possible notion of poker similarity.</p>
+<div id="tbl-folds" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-folds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Five fixed development folds. Groups are defined without reference labels.
+</figcaption>
+<div aria-describedby="tbl-folds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top">
+<colgroup>
+<col class="article-style-1">
+<col class="article-style-1">
+<col class="article-style-1">
+<col class="article-style-1">
+</colgroup>
+<thead>
+<tr class="header">
+<th class="article-style-2">Fold</th>
+<th class="article-style-2">Training examples</th>
+<th class="article-style-2">Held-out examples</th>
+<th class="article-style-2">Shared scenario groups</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td class="article-style-2">1</td>
+<td class="article-style-2">8,070</td>
+<td class="article-style-2">1,930</td>
+<td class="article-style-2">0</td>
+</tr>
+<tr class="even">
+<td class="article-style-2">2</td>
+<td class="article-style-2">7,889</td>
+<td class="article-style-2">2,111</td>
+<td class="article-style-2">0</td>
+</tr>
+<tr class="odd">
+<td class="article-style-2">3</td>
+<td class="article-style-2">8,067</td>
+<td class="article-style-2">1,933</td>
+<td class="article-style-2">0</td>
+</tr>
+<tr class="even">
+<td class="article-style-2">4</td>
+<td class="article-style-2">7,911</td>
+<td class="article-style-2">2,089</td>
+<td class="article-style-2">0</td>
+</tr>
+<tr class="odd">
+<td class="article-style-2">5</td>
+<td class="article-style-2">8,063</td>
+<td class="article-style-2">1,937</td>
+<td class="article-style-2">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<h2 data-number="3.2" id="baselines-training-and-metrics" class="anchored"><span class="header-section-number">3.2</span> Baselines, training, and metrics</h2>
+<p>We compare uniform candidate probabilities, a training-only option prior, and a linear candidate model with four pretrained encoders: BERT Mini, MiniLM, DistilBERT, and ModernBERT. Each encoder receives both a linear head and an MLP head, for eight transformer configurations and 40 fitted folds.</p>
+<p>Every transformer fit uses seed 42, three fixed epochs, batch size 16, encoder learning rate <span class="math inline"><math><mrow><mn>2</mn><mo>×</mo><msup><mn>10</mn><mrow><mo form="prefix" stretchy="false" lspace="0em" rspace="0em">−</mo><mn>5</mn></mrow></msup></mrow></math></span>, head learning rate <span class="math inline"><math><msup><mn>10</mn><mrow><mo form="prefix" stretchy="false" lspace="0em" rspace="0em">−</mo><mn>3</mn></mrow></msup></math></span>, weight decay 0.01, and maximum sequence length 512. The MLP width is 64. Each fold starts with a fresh encoder, head, and optimizer. Held-out folds do not choose epochs. Baselines are refitted using each fold’s training examples.</p>
+<p><strong>Exact accuracy</strong> measures agreement with the supplied reference candidate, including its amount. <strong>Log loss</strong> measures the probability assigned to that reference and penalizes confident mistakes. We also record action-type macro-F1, Brier score, street-specific performance, and multi-option accuracy. The latter excludes decisions with only one candidate, which require no choice; such rows make up 4.64% of the pool. Uniform probabilities have ties, so deterministic exact accuracy and tie-expected accuracy can differ.</p>
+<p>These are development comparisons on an inspected pool, with one training seed. Selecting a model from this matrix and quoting the same score does not provide an independent final performance estimate. The maintained workflows do not load the official test, but some original team submissions had already inspected it. An independent evaluation needs a predeclared new holdout or nested selection.</p>
+<h1 data-number="4" id="what-do-the-models-learn"><span class="header-section-number">4</span> What do the models learn?</h1>
+<h2 data-number="4.1" id="better-probability-quality-modest-accuracy-gains" class="anchored"><span class="header-section-number">4.1</span> Better probability quality, modest accuracy gains</h2>
+<p>ModernBERT with a linear head has the highest observed exact accuracy, 71.92%, and the lowest log loss, 0.6078. The linear candidate baseline reaches 69.69% accuracy and 1.0025 log loss. The observed accuracy improvement is 2.23 percentage points.</p>
+<div id="fig-models" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="interactive-figure" data-widget="models">
+<p><img class="static-fallback" src="generated/figures/models.svg" alt="Exact accuracy and log loss for three baselines and eight encoder-head combinations on the same development pool."></p>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Development comparison on 10,000 examples, with one held-out prediction per model and example. Circles denote linear heads and diamonds MLP heads for transformers. Higher accuracy and lower log loss are better. The web control changes only the accuracy panel to exclude single-option rows; log loss remains over all examples. No plotted uncertainty bars are implied by these point estimates.
+</figcaption>
+</figure>
+</div>
+<p>DistilBERT linear reaches 71.78%, only 14 decisions behind ModernBERT out of 10,000. That small gap does not establish a reliable advantage for ModernBERT. Adding an MLP does not consistently improve either metric across encoders. BERT Mini and MiniLM do not beat the linear candidate baseline on exact accuracy in these runs, although all eight transformer configurations have lower log loss.</p>
+<p>This distinction matters. A model can make a similar number of top-choice mistakes while distributing its remaining probability more usefully. Lower log loss is evidence about reference-label probability quality. It does not establish that the softmax is calibrated or that it recovers an optimal mixed strategy.</p>
+<p>The saved paired scenario-group bootstrap interval for ModernBERT linear’s accuracy gain over the linear candidate baseline is approximately +1.01 to +3.33 percentage points. That interval conditions on the saved fitted models and specified groups; it excludes variation from retraining and cannot remove the consequences of selecting a model after inspecting development results.</p>
+<h2 data-number="4.2" id="street-level-behavior-and-illustrative-mistakes" class="anchored"><span class="header-section-number">4.2</span> Street-level behavior and illustrative mistakes</h2>
+<p>An overall average conceals substantial variation between streets. <a href="#fig-streets" class="quarto-xref">Figure&nbsp;4</a> compares the deployed BERT Mini architecture and ModernBERT, using linear heads. Preflop agreement is higher than postflop agreement in these runs. Street counts are uneven: there are 5,000 preflop, 310 flop, 2,021 turn, and 2,669 river decisions. We should avoid attributing those differences to a single mechanism without controlled experiments on the representation, menus, and source distributions.</p>
+<div id="fig-streets" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-streets-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="interactive-figure" data-widget="streets">
+<p><picture class="static-fallback"> <source media="(max-width: 640px)" srcset="generated/figures/streets-mobile.svg"> <img src="generated/figures/streets.svg" alt="Street-specific exact accuracy and log loss from the same held-out development predictions. Connected points organize categorical streets; they do not describe a learning trajectory."> </picture></p>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-streets-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Street-specific exact accuracy and log loss from the same held-out development predictions. Connected points organize categorical streets; they do not describe a learning trajectory.
+</figcaption>
+</figure>
+</div>
+<p>The hand explorer in <a href="#fig-hand" class="quarto-xref">Figure&nbsp;1</a> complements aggregate metrics by exposing an actual action-type error. It also permits comparison with the saved linear baseline on exactly the same input. These examples are purposefully selected. The available 256-hand demo sample contains no wrong-amount errors for this checkpoint, so that category is not illustrated here. The broader evaluation supports separating amount errors from action-type errors, but a representative error taxonomy requires the full saved decision pool and its declared selection rules.</p>
+<h1 data-number="5" id="does-opponent-history-help"><span class="header-section-number">5</span> Does opponent history help?</h1>
+<h2 data-number="5.1" id="controlled-forecasting-in-leduc" class="anchored"><span class="header-section-number">5.1</span> Controlled forecasting in Leduc</h2>
+<p>The first history experiment isolates opponent-action forecasting in a small, controlled game. We generate Leduc sessions with five policy profiles: tight, passive, aggressive, balanced, and switching. Fifty opponent instances play two sessions each, giving 6,000 hands and 12,711 recorded decisions. Repeated sessions from one opponent stay in the same split.</p>
+<p>Predictors receive the observer’s own private rank, public board, pot and contributions, legal menu, and current public action prefix. Opponent private cards and generator metadata are excluded. History summaries use completed previous hands and match the relevant action opportunities. They cannot look at future hands or the current target.</p>
+<div id="fig-leduc" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-leduc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="interactive-figure" data-widget="leduc">
+<p><picture class="static-fallback"> <source media="(max-width: 640px)" srcset="generated/figures/leduc-mobile.svg"> <img src="generated/figures/leduc.svg" alt="Controlled Leduc opponent-action forecasting on 2,506 held-out decisions from 10 opponents. History windows are counts of completed hands. The 64-hand primary window was selected using validation log loss; the plotted test points are descriptive comparisons within this one simulated population."> </picture></p>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-leduc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Controlled Leduc opponent-action forecasting on 2,506 held-out decisions from 10 opponents. History windows are counts of completed hands. The 64-hand primary window was selected using validation log loss; the plotted test points are descriptive comparisons within this one simulated population.
+</figcaption>
+</figure>
+</div>
+<p>The masked logistic forecaster improves from 59.26% to 69.87% accuracy when given the selected history summary, while log loss falls from 0.7741 to 0.6373. The paired whole-opponent bootstrap accuracy interval is +3.42 to +18.97 percentage points, conditional on the fitted models and generated population.</p>
+<p>More history is not uniformly better. All-history summaries are slightly worse than the selected 64-hand window, and history-based models can lag after a policy switch. The first-five-hands-after-switch slice contains only 40 decisions from two opponent instances, so it is descriptive. These results motivate studying memory under behavior changes; they do not establish human tilt detection or better Hero decisions.</p>
+<h2 data-number="5.2" id="connecting-histories-to-real-holdem-inputs" class="anchored"><span class="header-section-number">5.2</span> Connecting histories to real Hold’em inputs</h2>
+<p>We next reuse causal summaries with replayed Hold’em histories from the Pluribus setting <span class="citation" data-cites="pluribus">(<a href="#ref-pluribus" role="doc-biblioref">Brown and Sandholm 2019</a>)</span>. The target here is the observed human action. This differs from PokerBench reference-action imitation and from the simulated Leduc task. The transformer receives a summary of completed-hand opponent behavior appended to its input. Learned forecaster probabilities are not injected into the model.</p>
+<p>The follow-up uses nested training samples of 128, 1,024, and 4,096 decisions and the same 1,024 validation decisions. The numeric-session-group split, initialization, seed, learning rates, and one-epoch budget remain fixed. Validation does not select an epoch or hyperparameter. The public-state forecaster and BERT Mini have different information boundaries, so their panels are separate matched ablations.</p>
+<div id="fig-holdem" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-holdem-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="interactive-figure" data-widget="holdem">
+<p><picture class="static-fallback"> <source media="(max-width: 640px)" srcset="generated/figures/holdem-mobile.svg"> <img src="generated/figures/holdem.svg" alt="History ablations across nested training sizes on the same 1,024 Hold'em validation decisions. The top row shows BERT Mini observed-action prediction; the bottom row shows the public-state forecaster. Each matched pair varies history availability. One epoch on a larger sample entails more optimizer steps, so this is not an equal-compute comparison."> </picture></p>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-holdem-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: History ablations across nested training sizes on the same 1,024 Hold’em validation decisions. The top row shows BERT Mini observed-action prediction; the bottom row shows the public-state forecaster. Each matched pair varies history availability. One epoch on a larger sample entails more optimizer steps, so this is not an equal-compute comparison.
+</figcaption>
+</figure>
+</div>
+<p>More training substantially improves prediction, but the appended summaries do not establish a transformer benefit. At 4,096 training decisions, accuracy is 73.14% without history and 72.46% with history. Log loss rises from 0.621108 to 0.651398. The paired session-cluster interval for the accuracy change is -2.51 to +1.04 percentage points. The apparent history gain in the original 64-example integration check does not persist in the larger comparison.</p>
+<p>The public-state forecaster shows a smaller, different result. At 4,096 training decisions, history increases accuracy from 68.07% to 69.34% and reduces log loss from 0.705272 to 0.700675. Its paired log-loss interval is -0.008054 to -0.001070. This supports a modest conditional forecasting benefit, while leaving the transformer integration question open.</p>
+<p>These experiments use one seed, an inspected validation set, and recurring human aliases across different sessions. Session-cluster intervals do not capture retraining variation or generalization to unseen players. A useful next experiment would vary summary representation and memory while preserving paired memberships, then evaluate a predeclared configuration on new sessions or players.</p>
+<h1 data-number="6" id="explore-pocketsolver"><span class="header-section-number">6</span> Explore PocketSolver</h1>
+<p>PocketSolver restores the trained BERT Mini encoder and linear candidate head on CPU. Its 256-hand sample consists of multi-option decisions held out by that checkpoint. The reference appears after prediction and is excluded from both model and live LLM inputs. The small checkpoint is a serving choice; it is not the highest-scoring model in the development matrix.</p>
+<div id="live-demo" class="live-demo">
+<p class="eyebrow">
+LIVE POCKETSOLVER
+</p>
+<p>
+Explore the trained model on held-out hands. The optional live LLM comparison uses the application’s existing request allowance.
+</p>
+<button type="button" id="load-demo">
+Open the live demo here
+</button>
+<p>
+<a href="https://www.nmokey.com/poker/" target="_blank" rel="noopener">Open the full demo in a separate tab ↗</a>
+</p>
+<div id="demo-frame">
+
+</div>
+</div>
+<p>The live comparison is an illustration, not a controlled model-versus-LLM study. Provider failures and allowance limits remain visible. A few hands or one browser timing cannot establish general quality or latency advantages. A proper serving comparison should record hardware, cold and warm execution, input lengths, provider settings, successful-response coverage, and repeated measurements.</p>
+<h1 data-number="7" id="limitations-and-next-steps"><span class="header-section-number">7</span> Limitations and next steps</h1>
+<p>The strongest supported conclusion is narrow: jointly encoding a situation and its candidate actions is a workable supervised interface, and the larger encoders improve reference-label probability quality with modest accuracy gains over a strong simple baseline. Causal opponent summaries help in one controlled forecasting setting, while their current Hold’em transformer integration does not show a reliable gain.</p>
+<p>Several limitations determine what to do next. Independent final evaluation and multiple training seeds would clarify how much of the observed ranking persists. Candidate-order perturbations and representation ablations would test whether models depend on incidental serialization or menu shortcuts. Calibration should be fitted and assessed on data separate from final evaluation. Controlled serving measurements would test the practical benefit of avoiding autoregressive output.</p>
+<p>Finally, agreement with one reference action is not a payoff evaluation. A single label does not describe a full solver strategy, and observed human actions need not be optimal. Claims about profitable, robust, or unexploitable play require additional repeated-play or game-theoretic evaluation. The present article and demo provide a reproducible foundation for those experiments.</p>
+<h1 class="appendix" data-number="8" id="reproducibility-and-complete-results"><span class="header-section-number">8</span> Reproducibility and complete results</h1>
+<p>All reported comparisons use saved protocols and reviewed aggregate results. The report build validates the main CSV against the corresponding JSON, checks the demo hand checksum, and joins examples to the saved fold-specific predictions. It exports the same figures as SVG for the web and vector PDF for LaTeX, together with source and output hashes. No training or live inference runs while rendering the article.</p>
+<p>The manuscript, bibliography, shared values, and figure identifiers are common to HTML, PDF, and LaTeX. The print hand and model figures match the default web states. Web-only controls supplement the paper’s argument without carrying claims that are absent from the static version.</p>
+<div id="tbl-models" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Complete development matrix. Multi-option accuracy excludes single-candidate rows. Uniform exact accuracy uses the evaluator’s deterministic tie rule; tie-expected accuracy is 44.57% overall. All rows cover the same working pool.
+</figcaption>
+<div aria-describedby="tbl-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th class="article-style-3">Model</th>
+<th class="article-style-3">Head</th>
+<th class="article-style-2">Exact accuracy</th>
+<th class="article-style-2">Multi-option accuracy</th>
+<th class="article-style-2">Log loss</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td class="article-style-3">Linear candidate</td>
+<td class="article-style-3">—</td>
+<td class="article-style-2">69.69%</td>
+<td class="article-style-2">68.22%</td>
+<td class="article-style-2">1.0025</td>
+</tr>
+<tr class="even">
+<td class="article-style-3">Option prior</td>
+<td class="article-style-3">—</td>
+<td class="article-style-2">57.64%</td>
+<td class="article-style-2">55.58%</td>
+<td class="article-style-2">0.7623</td>
+</tr>
+<tr class="odd">
+<td class="article-style-3">Uniform</td>
+<td class="article-style-3">—</td>
+<td class="article-style-2">41.28%</td>
+<td class="article-style-2">38.42%</td>
+<td class="article-style-2">0.8551</td>
+</tr>
+<tr class="even">
+<td class="article-style-3">BERT Mini</td>
+<td class="article-style-3">linear</td>
+<td class="article-style-2">68.96%</td>
+<td class="article-style-2">67.45%</td>
+<td class="article-style-2">0.6722</td>
+</tr>
+<tr class="odd">
+<td class="article-style-3">BERT Mini</td>
+<td class="article-style-3">mlp</td>
+<td class="article-style-2">69.35%</td>
+<td class="article-style-2">67.86%</td>
+<td class="article-style-2">0.6656</td>
+</tr>
+<tr class="even">
+<td class="article-style-3">DistilBERT</td>
+<td class="article-style-3">linear</td>
+<td class="article-style-2">71.78%</td>
+<td class="article-style-2">70.41%</td>
+<td class="article-style-2">0.6164</td>
+</tr>
+<tr class="odd">
+<td class="article-style-3">DistilBERT</td>
+<td class="article-style-3">mlp</td>
+<td class="article-style-2">71.60%</td>
+<td class="article-style-2">70.22%</td>
+<td class="article-style-2">0.6213</td>
+</tr>
+<tr class="even">
+<td class="article-style-3">MiniLM</td>
+<td class="article-style-3">linear</td>
+<td class="article-style-2">69.57%</td>
+<td class="article-style-2">68.09%</td>
+<td class="article-style-2">0.6849</td>
+</tr>
+<tr class="odd">
+<td class="article-style-3">MiniLM</td>
+<td class="article-style-3">mlp</td>
+<td class="article-style-2">68.83%</td>
+<td class="article-style-2">67.31%</td>
+<td class="article-style-2">0.6764</td>
+</tr>
+<tr class="even">
+<td class="article-style-3">ModernBERT</td>
+<td class="article-style-3">linear</td>
+<td class="article-style-2">71.92%</td>
+<td class="article-style-2">70.55%</td>
+<td class="article-style-2">0.6078</td>
+</tr>
+<tr class="odd">
+<td class="article-style-3">ModernBERT</td>
+<td class="article-style-3">mlp</td>
+<td class="article-style-2">71.38%</td>
+<td class="article-style-2">69.99%</td>
+<td class="article-style-2">0.6158</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The repository contains the detailed <a href="https://github.com/nmokey/Poker-Decision-Model/blob/main/docs/week2-results.md">model protocol</a>, <a href="https://github.com/nmokey/Poker-Decision-Model/blob/main/docs/scientific-audit.md">scientific audit</a>, <a href="https://github.com/nmokey/Poker-Decision-Model/blob/main/docs/meeting4-results.md">Leduc experiment</a>, and <a href="https://github.com/nmokey/Poker-Decision-Model/blob/main/docs/meeting5-scaling.md">Hold’em follow-up</a>. The local draft may precede publication of those files on the repository’s default branch. The generated provenance file identifies the exact local sources used.</p>
+<h1 class="unnumbered" id="references">References</h1>
+<ul id="refs" class="references csl-bib-body hanging-indent">
+<li id="ref-pluribus" class="csl-entry">
+Brown, Noam, and Tuomas Sandholm. 2019. <span>“Superhuman <span>AI</span> for Multiplayer Poker.”</span> <em>Science</em> 365 (6456): 885–90. <a href="https://doi.org/10.1126/science.aay2400">https://doi.org/10.1126/science.aay2400</a>.
+</li>
+<li id="ref-bert" class="csl-entry">
+Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. <em><span>BERT</span>: Pre-Training of Deep Bidirectional Transformers for Language Understanding</em>. <a href="https://arxiv.org/abs/1810.04805">https://arxiv.org/abs/1810.04805</a>.
+</li>
+<li id="ref-pokerbench" class="csl-entry">
+Zhuang, Richard, Akshat Gupta, Richard Yang, Aniket Rahane, Zhengyu Li, and Gopala Anumanchipalli. 2025. <em><span>PokerBench</span>: Training Large Language Models to Become Professional Poker Players</em>. <a href="https://arxiv.org/abs/2501.08328">https://arxiv.org/abs/2501.08328</a>.
+</li>
+</ul>
+
+<script id="report-data" type="application/json">{"schema": 1, "values": {"best_accuracy": "71.92%", "best_loss": "0.6078", "baseline_accuracy": "69.69%", "baseline_loss": "1.0025", "accuracy_gain": "2.23", "distil_accuracy": "71.78%", "holdem_decision_without_history_accuracy": "73.14%", "holdem_decision_without_history_loss": "0.621108", "holdem_forecaster_without_history_accuracy": "68.07%", "holdem_forecaster_without_history_loss": "0.705272", "holdem_decision_with_history_accuracy": "72.46%", "holdem_decision_with_history_loss": "0.651398", "holdem_forecaster_with_history_accuracy": "69.34%", "holdem_forecaster_with_history_loss": "0.700675", "leduc_no_history_accuracy": "59.26%", "leduc_no_history_loss": "0.7741", "leduc_history_selected_accuracy": "69.87%", "leduc_history_selected_loss": "0.6373"}, "models": [{"backbone": "baseline", "model": "linear_candidate", "n": 10000.0, "exact_accuracy": 0.6969, "tie_expected_accuracy": 0.6969, "action_type_macro_f1": 0.602897312156557, "log_loss": 1.0025366552691382, "brier_score": 0.47346738299458996, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.6821518456375839, "fold_log_loss_mean": 1.002763986317316, "fold_log_loss_sd": 0.035274346655194, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"backbone": "baseline", "model": "option_prior", "n": 10000.0, "exact_accuracy": 0.5764, "tie_expected_accuracy": 0.5755, "action_type_macro_f1": 0.4516097306483028, "log_loss": 0.7623412668566131, "brier_score": 0.4925290883564907, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.5557885906040269, "fold_log_loss_mean": 0.7617776694175198, "fold_log_loss_sd": 0.023768840177780512, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"backbone": "baseline", "model": "uniform", "n": 10000.0, "exact_accuracy": 0.4128, "tie_expected_accuracy": 0.4457083333333333, "action_type_macro_f1": 0.23928090775611613, "log_loss": 0.8551043266592633, "brier_score": 0.5542916666666667, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.38422818791946306, "fold_log_loss_mean": 0.8547627932039935, "fold_log_loss_sd": 0.015582441799997552, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"backbone": "bert_mini", "model": "transformer_linear", "n": 10000.0, "exact_accuracy": 0.6896, "tie_expected_accuracy": 0.6896, "action_type_macro_f1": 0.56827138186778, "log_loss": 0.6722290024877853, "brier_score": 0.41161510510687993, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.674496644295302, "fold_log_loss_mean": 0.6720630438902884, "fold_log_loss_sd": 0.015336597698661414, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"backbone": "bert_mini", "model": "transformer_mlp", "n": 10000.0, "exact_accuracy": 0.6935, "tie_expected_accuracy": 0.6935, "action_type_macro_f1": 0.5693264745315423, "log_loss": 0.6655671821391158, "brier_score": 0.4059516428022055, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.6785864093959731, "fold_log_loss_mean": 0.6652025960937399, "fold_log_loss_sd": 0.024073572350516163, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"backbone": "distilbert", "model": "transformer_linear", "n": 10000.0, "exact_accuracy": 0.7178, "tie_expected_accuracy": 0.7178, "action_type_macro_f1": 0.5868782060439506, "log_loss": 0.61639010198444, "brier_score": 0.37363743282834794, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.7040687919463087, "fold_log_loss_mean": 0.6161051179959642, "fold_log_loss_sd": 0.024297225914715528, "protocol_sha256": "e4bb898a213d817bcb0a86df8fd561075c426ac273ab9a1a06f41918b77a6f91"}, {"backbone": "distilbert", "model": "transformer_mlp", "n": 10000.0, "exact_accuracy": 0.716, "tie_expected_accuracy": 0.716, "action_type_macro_f1": 0.5810193027024572, "log_loss": 0.6213451498138248, "brier_score": 0.37692257364093423, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.7021812080536913, "fold_log_loss_mean": 0.6212237908302546, "fold_log_loss_sd": 0.02064414644579488, "protocol_sha256": "e4bb898a213d817bcb0a86df8fd561075c426ac273ab9a1a06f41918b77a6f91"}, {"backbone": "minilm", "model": "transformer_linear", "n": 10000.0, "exact_accuracy": 0.6957, "tie_expected_accuracy": 0.6957, "action_type_macro_f1": 0.5779532327609554, "log_loss": 0.6849210212886455, "brier_score": 0.40636208352702213, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.680893456375839, "fold_log_loss_mean": 0.6856267727185928, "fold_log_loss_sd": 0.06340948290045677, "protocol_sha256": "702d785462c884e17e9032d32dc1becc2f3298bbaf11ad98a7da95b622b7db71"}, {"backbone": "minilm", "model": "transformer_mlp", "n": 10000.0, "exact_accuracy": 0.6883, "tie_expected_accuracy": 0.6883, "action_type_macro_f1": 0.5758782581243127, "log_loss": 0.6763659761426913, "brier_score": 0.4115917931110651, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.6731333892617449, "fold_log_loss_mean": 0.6757825699072053, "fold_log_loss_sd": 0.06313629925702106, "protocol_sha256": "702d785462c884e17e9032d32dc1becc2f3298bbaf11ad98a7da95b622b7db71"}, {"backbone": "modernbert", "model": "transformer_linear", "n": 10000.0, "exact_accuracy": 0.7192, "tie_expected_accuracy": 0.7192, "action_type_macro_f1": 0.5950209250224006, "log_loss": 0.6077869381413451, "brier_score": 0.3695583631660921, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.7055369127516778, "fold_log_loss_mean": 0.6080206834459931, "fold_log_loss_sd": 0.041664028786697976, "protocol_sha256": "baef9f45180ebbcb25347e92bff9eba5ea87dcb6cf0a3ce00184cddd90953c0a"}, {"backbone": "modernbert", "model": "transformer_mlp", "n": 10000.0, "exact_accuracy": 0.7138, "tie_expected_accuracy": 0.7138, "action_type_macro_f1": 0.5891023860066904, "log_loss": 0.6157507359539602, "brier_score": 0.37378861795450313, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.6998741610738255, "fold_log_loss_mean": 0.6157835985761386, "fold_log_loss_sd": 0.030695018121117353, "protocol_sha256": "baef9f45180ebbcb25347e92bff9eba5ea87dcb6cf0a3ce00184cddd90953c0a"}], "examples": [{"source_id": "postflop-train-101720", "street": "turn", "context": "Street: turn. Hero position: OOP. Hero cards: Qd Jd. Board: Jc Jh 4s Ts. Preflop actions: CO: raise 2.3bb; BTN: call. Postflop actions: OOP: check; IP: bet 2bb; OOP: raise 9bb; IP: call; turn: Ts; OOP: check; IP: bet 18bb. Pot: 42 bb.", "candidates": ["fold", "call", "raise 58bb", "raise 88bb"], "target_index": 1, "category": "postflop success", "probabilities": [0.07799111539098964, 0.45855085428210657, 0.18698229452914877, 0.276475735797755], "baseline_probabilities": [0.1473386117445816, 0.7442738472059751, 0.0687852759841148, 0.03960226506532849], "prediction_index": 1, "fold": 1, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"source_id": "preflop-train-11609", "street": "preflop", "context": "Street: preflop. Hero position: SB. Hero cards: Qh Qc. Previous actions: CO: raise 2.3bb; SB: raise 11.5bb; BB: all-in; CO: fold. Source num_players: 3. Source num_bets: 3. Pot: 113.8 bb.", "candidates": ["call", "fold"], "target_index": 0, "category": "preflop success", "probabilities": [0.9495886534207256, 0.05041134657927433], "baseline_probabilities": [0.9990151478403547, 0.0009848521596452471], "prediction_index": 0, "fold": 1, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}, {"source_id": "postflop-train-100627", "street": "turn", "context": "Street: turn. Hero position: OOP. Hero cards: Kh 9c. Board: Jc Jh 4s Ts. Preflop actions: HJ: raise 2bb; BB: call. Postflop actions: OOP: check; IP: check; turn: Ts; OOP: check; IP: bet 5bb. Pot: 9 bb.", "candidates": ["fold", "call", "raise 14bb"], "target_index": 0, "category": "wrong action type", "probabilities": [0.26062303975688694, 0.6744470050517246, 0.06492995519138839], "baseline_probabilities": [0.324757979045994, 0.6487519238045389, 0.0264900971494671], "prediction_index": 1, "fold": 1, "protocol_sha256": "7038ddd3689c844c172ea150b1fc49f3172308a43c4b12be798b1200b02d5839"}], "streets": {"bert_mini": {"overall": {"n": 10000.0, "exact_accuracy": 0.6896, "tie_expected_accuracy": 0.6896, "action_type_macro_f1": 0.56827138186778, "log_loss": 0.6722290024877853, "brier_score": 0.41161510510687993, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.674496644295302}, "flop": {"n": 310.0, "exact_accuracy": 0.5580645161290323, "tie_expected_accuracy": 0.5580645161290323, "action_type_macro_f1": 0.34504183969509955, "log_loss": 0.9672516060196825, "brier_score": 0.5823690817564832, "single_option_rate": 0.0, "multi_option_exact_accuracy": 0.5580645161290323}, "preflop": {"n": 5000.0, "exact_accuracy": 0.8056, "tie_expected_accuracy": 0.8056, "action_type_macro_f1": 0.5986850138862245, "log_loss": 0.4555557634125119, "brier_score": 0.279551198442421, "single_option_rate": 0.0928, "multi_option_exact_accuracy": 0.7857142857142857}, "river": {"n": 2669.0, "exact_accuracy": 0.5803671787186212, "tie_expected_accuracy": 0.5803671787186212, "action_type_macro_f1": 0.41210372509176685, "log_loss": 0.8449619705930352, "brier_score": 0.5346032007073095, "single_option_rate": 0.0, "multi_option_exact_accuracy": 0.5803671787186212}, "turn": {"n": 2021.0, "exact_accuracy": 0.5670460168233548, "tie_expected_accuracy": 0.5670460168233548, "action_type_macro_f1": 0.4715887693078811, "log_loss": 0.9349132659259675, "brier_score": 0.5497301834855893, "single_option_rate": 0.0, "multi_option_exact_accuracy": 0.5670460168233548}}, "modernbert": {"overall": {"n": 10000.0, "exact_accuracy": 0.7192, "tie_expected_accuracy": 0.7192, "action_type_macro_f1": 0.5950209250224006, "log_loss": 0.6077869381413451, "brier_score": 0.3695583631660921, "single_option_rate": 0.0464, "multi_option_exact_accuracy": 0.7055369127516778}, "flop": {"n": 310.0, "exact_accuracy": 0.6161290322580645, "tie_expected_accuracy": 0.6161290322580645, "action_type_macro_f1": 0.40088772808235795, "log_loss": 0.887212140930726, "brier_score": 0.5221427938953681, "single_option_rate": 0.0, "multi_option_exact_accuracy": 0.6161290322580645}, "preflop": {"n": 5000.0, "exact_accuracy": 0.8456, "tie_expected_accuracy": 0.8456, "action_type_macro_f1": 0.6219102242662173, "log_loss": 0.3649253404263085, "brier_score": 0.21984654192175804, "single_option_rate": 0.0928, "multi_option_exact_accuracy": 0.8298059964726632}, "river": {"n": 2669.0, "exact_accuracy": 0.5829898838516299, "tie_expected_accuracy": 0.5829898838516299, "action_type_macro_f1": 0.41784664568757757, "log_loss": 0.8363987873095525, "brier_score": 0.5266341901169398, "single_option_rate": 0.0, "multi_option_exact_accuracy": 0.5829898838516299}, "turn": {"n": 2021.0, "exact_accuracy": 0.6021771400296883, "tie_expected_accuracy": 0.6021771400296883, "action_type_macro_f1": 0.510720158294801, "log_loss": 0.8638587591609048, "brier_score": 0.5091044050086364, "single_option_rate": 0.0, "multi_option_exact_accuracy": 0.6021771400296883}}}, "leduc": {"prior": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.8404045108683956, "accuracy": 0.5522745411013568, "tie_expected_accuracy": 0.5522745411013568, "brier": 0.5504154126458484, "session_macro_log_loss": 0.8512289575688851}, "no_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.7741092731535864, "accuracy": 0.5925778132482044, "tie_expected_accuracy": 0.5925778132482044, "brier": 0.5083852364446929, "session_macro_log_loss": 0.7798638548686987}, "history_4": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.7250606019622728, "accuracy": 0.6376695929768555, "tie_expected_accuracy": 0.6376695929768555, "brier": 0.4673603884444322, "session_macro_log_loss": 0.7317101146183236}, "history_16": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6605873329951402, "accuracy": 0.6931364724660815, "tie_expected_accuracy": 0.6931364724660815, "brier": 0.4182631672526688, "session_macro_log_loss": 0.668097529687266}, "history_64": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6372654539213759, "accuracy": 0.6987230646448523, "tie_expected_accuracy": 0.6987230646448523, "brier": 0.4011147914163849, "session_macro_log_loss": 0.645817391653351}, "history_all": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6435421648449162, "accuracy": 0.6895450917797287, "tie_expected_accuracy": 0.6895450917797287, "brier": 0.40721349347886554, "session_macro_log_loss": 0.6521934104377599}, "candidate_no_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.8048131407948975, "accuracy": 0.5925778132482044, "tie_expected_accuracy": 0.5925778132482044, "brier": 0.5253396580122718, "session_macro_log_loss": 0.8157078016075557}, "candidate_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.7141608869815363, "accuracy": 0.7043096568236233, "tie_expected_accuracy": 0.7043096568236233, "brier": 0.4237425663053211, "session_macro_log_loss": 0.7238840600897092}, "menu_no_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.773560340911011, "accuracy": 0.5889864325618516, "tie_expected_accuracy": 0.5889864325618516, "brier": 0.5067547776549692, "session_macro_log_loss": 0.7795371803269198}, "menu_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6298227195251931, "accuracy": 0.7166799680766162, "tie_expected_accuracy": 0.7166799680766162, "brier": 0.39235707161199634, "session_macro_log_loss": 0.6382849337824827}, "naive_bayes_no_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 1.225295812946708, "accuracy": 0.4381484437350359, "tie_expected_accuracy": 0.4381484437350359, "brier": 0.7002853632650853, "session_macro_log_loss": 1.2240530614792753}, "naive_bayes_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 2.0995203891436796, "accuracy": 0.5830007980845969, "tie_expected_accuracy": 0.5830007980845969, "brier": 0.7250066705321673, "session_macro_log_loss": 2.1177882629321303}, "strength": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.7944596343744027, "accuracy": 0.5522745411013568, "tie_expected_accuracy": 0.5522745411013568, "brier": 0.527910745709041, "session_macro_log_loss": 0.7996608443970903}, "strength_history": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6618163871901797, "accuracy": 0.6851556264964086, "tie_expected_accuracy": 0.6851556264964086, "brier": 0.4200168144303417, "session_macro_log_loss": 0.6695190448776575}, "history_selected": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6372654539213759, "accuracy": 0.6987230646448523, "tie_expected_accuracy": 0.6987230646448523, "brier": 0.4011147914163849, "session_macro_log_loss": 0.645817391653351}, "uniform": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.823070756701548, "accuracy": 0.38427773343974464, "tie_expected_accuracy": 0.4465948390529396, "brier": 0.5534051609470605, "session_macro_log_loss": 0.8219839794447521}, "bayesian": {"n": 2506, "sessions": 20, "opponents": 10, "descriptive_only": false, "log_loss": 0.6157214669775863, "accuracy": 0.7334397446129289, "tie_expected_accuracy": 0.7334397446129289, "brier": 0.3817094766752763, "session_macro_log_loss": 0.6243140517384956}}, "holdem": [{"model": "forecaster", "train_examples": 128, "variant": "without_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.638671875, "log_loss": 1.3911403326751335}, {"model": "forecaster", "train_examples": 128, "variant": "without_history", "validation_scope": "original", "n": 64, "accuracy": 0.671875, "log_loss": 1.0834199965345448}, {"model": "forecaster", "train_examples": 128, "variant": "with_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.6259765625, "log_loss": 1.421411497576091}, {"model": "forecaster", "train_examples": 128, "variant": "with_history", "validation_scope": "original", "n": 64, "accuracy": 0.640625, "log_loss": 1.0825082357529916}, {"model": "decision", "train_examples": 128, "variant": "without_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.552734375, "log_loss": 1.02808318831614}, {"model": "decision", "train_examples": 128, "variant": "without_history", "validation_scope": "original", "n": 64, "accuracy": 0.578125, "log_loss": 0.9642431510807161}, {"model": "decision", "train_examples": 128, "variant": "with_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.568359375, "log_loss": 1.0637468917824089}, {"model": "decision", "train_examples": 128, "variant": "with_history", "validation_scope": "original", "n": 64, "accuracy": 0.625, "log_loss": 0.9434630429821631}, {"model": "forecaster", "train_examples": 1024, "variant": "without_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.677734375, "log_loss": 0.7733219120057268}, {"model": "forecaster", "train_examples": 1024, "variant": "without_history", "validation_scope": "original", "n": 64, "accuracy": 0.609375, "log_loss": 0.7404712550228897}, {"model": "forecaster", "train_examples": 1024, "variant": "with_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.671875, "log_loss": 0.7762284895599724}, {"model": "forecaster", "train_examples": 1024, "variant": "with_history", "validation_scope": "original", "n": 64, "accuracy": 0.6875, "log_loss": 0.7416325353178829}, {"model": "decision", "train_examples": 1024, "variant": "without_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.7177734375, "log_loss": 0.6801332437618429}, {"model": "decision", "train_examples": 1024, "variant": "without_history", "validation_scope": "original", "n": 64, "accuracy": 0.640625, "log_loss": 0.7508409601457613}, {"model": "decision", "train_examples": 1024, "variant": "with_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.71875, "log_loss": 0.7017154452679346}, {"model": "decision", "train_examples": 1024, "variant": "with_history", "validation_scope": "original", "n": 64, "accuracy": 0.640625, "log_loss": 0.7889737351779318}, {"model": "forecaster", "train_examples": 4096, "variant": "without_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.6806640625, "log_loss": 0.7052722829395551}, {"model": "forecaster", "train_examples": 4096, "variant": "without_history", "validation_scope": "original", "n": 64, "accuracy": 0.703125, "log_loss": 0.6304441693085365}, {"model": "forecaster", "train_examples": 4096, "variant": "with_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.693359375, "log_loss": 0.7006749912571075}, {"model": "forecaster", "train_examples": 4096, "variant": "with_history", "validation_scope": "original", "n": 64, "accuracy": 0.671875, "log_loss": 0.6211531769976144}, {"model": "decision", "train_examples": 4096, "variant": "without_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.7314453125, "log_loss": 0.6211080482848}, {"model": "decision", "train_examples": 4096, "variant": "without_history", "validation_scope": "original", "n": 64, "accuracy": 0.71875, "log_loss": 0.58620611955989}, {"model": "decision", "train_examples": 4096, "variant": "with_history", "validation_scope": "expanded", "n": 1024, "accuracy": 0.724609375, "log_loss": 0.6513983582888596}, {"model": "decision", "train_examples": 4096, "variant": "with_history", "validation_scope": "original", "n": 64, "accuracy": 0.703125, "log_loss": 0.6367857845142335}], "scope": "One-seed development comparisons; selected examples are illustrative."}</script>
+</main>
+
+
+
+
+
+
+<script src="assets/article.js" defer></script></body></html>

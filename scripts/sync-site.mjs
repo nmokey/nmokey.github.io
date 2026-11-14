@@ -61,7 +61,7 @@ for (let [name, html] of pages) {
     "style-src 'self'",
     "img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com",
     "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
-    name === 'poker/index.html'
+    name.startsWith('poker/')
       ? "frame-src https://nmokey-poker-decision-model-deploystreamlitapp-codexdepl-dhuhge.streamlit.app"
       : "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
     "font-src 'self'",
