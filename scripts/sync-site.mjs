@@ -4,13 +4,15 @@
 import { readFile, writeFile, readdir, mkdir, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { discoverPages } from './pages.mjs';
+import { searchOrigin, canonicalUrl, isSearchable } from './search.mjs';
 import { digest, versionScripts, renderPageAssets } from './assets.mjs';
 import { loadPosts, renderPostList, renderPostPage, renderFeed, renderMathCss } from './posts.mjs';
 
 const check = process.argv.includes('--check');
-const origin = 'https://www.nmokey.com';
+const origin = searchOrigin;
 const themeVersion = digest(await readFile('docs/assets/js/theme-init.js'));
 const posts = await loadPosts('posts', { drafts: process.argv.includes('--drafts') });
+const draftPages = new Set(posts.filter(post => post.draft).map(post => `thoughts/${post.slug}.html`));
 const pages = new Map();
 for (const name of (await discoverPages('docs')).filter(name => !name.startsWith('thoughts/'))) {
   pages.set(name, await readFile(`docs/${name}`, 'utf8'));
@@ -60,7 +62,7 @@ for (let [name, html] of pages) {
     "script-src-attr 'none'",
     "style-src 'self'",
     "img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com",
-    "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+    "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://www.googletagmanager.com",
     name.startsWith('poker/')
       ? "frame-src https://nmokey-poker-decision-model-deploystreamlitapp-codexdepl-dhuhge.streamlit.app"
       : "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
@@ -75,22 +77,20 @@ for (let [name, html] of pages) {
     const content = scripts.get(match[1].replace('/assets/js/', '')) ?? await readFile(`docs${match[1]}`);
     html = html.replace(match[0], match[0].split('=')[0] + `="${match[1]}?v=${digest(content)}"`);
   }
-  const canonical = `${origin}/${name === 'index.html' ? '' : name.replace(/\/index\.html$/, '/')}`;
-  const analytics = name === 'poker/index.html' ? '' : `  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NK15EEMEB2"></script>
-  <script src="/assets/js/analytics.js?v=${digest(scripts.get('analytics.js'))}"></script>
+  const canonical = canonicalUrl(name);
+  const analytics = `  <script src="/assets/js/analytics.js?v=${digest(scripts.get('analytics.js'))}"></script>
 `;
   const metadata = `
   <!-- Generated site metadata -->
   <meta http-equiv="Content-Security-Policy" content="${policy}">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  ${name === '404.html' ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}
-  <script src="/assets/js/theme-init.js?v=${themeVersion}"></script>
+${!isSearchable(name, draftPages) ? '  <meta name="robots" content="noindex">\n' : ''}${name === '404.html' ? '' : `  <link rel="canonical" href="${canonical}">\n`}  <script src="/assets/js/theme-init.js?v=${themeVersion}"></script>
 ${analytics}  <!-- End generated site metadata -->
 `;
   html = html.replace(/(<meta charset="utf-8">)\n?/, `$1${metadata}`);
   await output(`docs/${name}`, html);
 }
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...pages.keys()].filter(name => name !== '404.html').map(name => `  <url><loc>${origin}/${name === 'index.html' ? '' : name.replace(/\/index\.html$/, '/')}</loc></url>`).join('\n')}\n</urlset>\n`;
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...pages.keys()].filter(name => isSearchable(name, draftPages)).map(name => `  <url><loc>${canonicalUrl(name)}</loc></url>`).join('\n')}\n</urlset>\n`;
 await output('docs/sitemap.xml', sitemap);
 await output('docs/feed.xml', renderFeed(posts, origin));
 await output('docs/robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`);

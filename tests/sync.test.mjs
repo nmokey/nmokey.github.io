@@ -118,7 +118,8 @@ test('nested pages are discovered and shared assets include versioned module dep
   await mkdir(join(root, 'docs/notes/deep'), { recursive: true });
   await put('docs/notes/deep/index.html', await get('docs/index.html'));
   assert.equal(run().status, 0);
-  assert.match(await get('docs/sitemap.xml'), /https:\/\/www.nmokey.com\/notes\/deep\//);
+  assert.doesNotMatch(await get('docs/sitemap.xml'), /https:\/\/www.nmokey.com\/notes\/deep\//);
+  assert.match(await get('docs/notes/deep/index.html'), /name="robots" content="noindex"/);
   const nested = await get('docs/notes/deep/index.html');
   assert.match(nested, /life-init.js\?v=[a-f0-9]{12}/);
   assert.match(nested, /components.css\?v=[a-f0-9]{12}/);
