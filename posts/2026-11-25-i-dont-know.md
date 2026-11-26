@@ -1,0 +1,18 @@
+---
+title: '"i don't know"'
+date: 2026-11-25
+---
+
+there's a line in will smith's The Pursuit of Happyness during the job interview scene that I think about a lot. he says,
+
+> *"Can I say something? Um, I'm the type of person that if you ask me a question and I don't know the answer, I'm gonna tell you that I don't know. But I bet you what - I know how to find the answer, and I will find the answer. Is that fair enough?"*
+
+as I look around and see more and more college students valuing inflating their own competency for the sake of "faking it till you make it" over putting their heads down and actually putting in the work, I think that the above mindset has become a rare breed.
+
+i recently was fortunate enough to receive quant trading internship offers from imc trading, citadel securities, and jane street. i think that there's some level of unattainability that many people perceive about top firms like these, and it's a foregone conclusion to them that if you're not some kind of math genius, you were never in contention. but based on my firsthand experiences going through the interview processes, this is not true at all. i was surprised by how little they cared about what complex technical concepts you can wield, how fast your mental math is, or how quickly you can converge on the correct approach. rather, they index heavily on how you communicate your ideas, adapt to feedback, and in general aren't completely insufferable. there were several rounds where i didn't even finish the task, or missed some core insight in the game, yet everything worked out. I worked carefully and methodically, put a lot of effort into narrating my thoughts, and engaged in a lot of productive conversation with my interviewers, so it really felt like we were working *together* on solving a problem.
+
+even if you don't end up with the best approach or get straight to the answer they're looking for, they want to see how you act when you're challenged: do you freeze up because your strength is simply KNOWING stuff and panic when you see something out-of-sample, or do you say "i don't immediately know, but here's a smaller piece of the problem we can try and tackle to see if this leads us somewhere?" A great signal of a top candidate is whether "i don't know" ends your conversation, or is the beginning of a very productive one.
+
+my point here is that people shouldn't overly index on what they already know, which is static, and forget that it's equally important (i would argue more important, in some cases) how you behave when you encounter something that you *don't* know, which is dynamic. people should keep this in mind when preparing for interviews, or learning in general: "grinding" and rote methods are limiting your ability to generalize. instead of building models and frameworks in your head, you're just adding to a leaky bank.
+
+the intellectual humility to admit when you don't know something, and the curiosity and drive to figure out how you might learn it, is a really valuable, high-signal trait. i attribute it to a lot of my interview successes, and have come to realize that it's also something I'm looking for when i evaluate people I collaborate with. so clearly, this is something to consider both when you're learning and when you're working with other people! i think that letting go of the idea that the best thing you can do is know as much as you can, even if it means misrepresenting yourself ("larping"), and instead being open to owning up to your gaps, both makes you a much more effective collaborator and alleviates pressure which makes it easier to learn!
