@@ -29,11 +29,13 @@ export async function versionScripts(directory) {
 
 /** Shared assets are generated inside explicit markers; page content stays authored. */
 export function renderPageAssets(name, html) {
+  // The Quarto research article carries its own layout and static math assets.
+  if (name === 'poker/writeup/index.html') return html;
   const poker = name === 'poker/index.html';
   const styles = poker ? ['css/poker.css'] : ['css/main.css', 'css/components.css'];
   if (name === '404.html') styles.push('css/404.css');
   if (html.includes('<math')) styles.push('temml/Temml-Local.css', 'temml/math.css');
-  const scripts = poker ? [] : ['config', 'components', 'main', 'life-init'];
+  const scripts = poker ? ['poker-embed'] : ['config', 'components', 'main', 'life-init'];
   if (html.includes('id="pageNav"')) scripts.push('page-nav');
   const blocks = {
     styles: styles.map(path => `  <link rel="stylesheet" href="/assets/${path}">`).join('\n'),

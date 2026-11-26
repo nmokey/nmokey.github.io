@@ -31,10 +31,32 @@ for (const name of pages) {
     }
   }
   for (const script of document.querySelectorAll('script:not([src])')) {
-    if (script.type !== 'application/ld+json') failures.push(`${name}: executable inline script`);
-    else try { JSON.parse(script.textContent); } catch { failures.push(`${name}: invalid JSON-LD`); }
+    if (!['application/ld+json', 'application/json'].includes(script.type)) failures.push(`${name}: executable inline script`);
+    else try { JSON.parse(script.textContent); } catch { failures.push(`${name}: invalid JSON data`); }
   }
-  if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) failures.push(`${name}: missing CSP`);
+  const policy = document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content;
+  if (!policy) failures.push(`${name}: missing CSP`);
+  const analytics = [...document.querySelectorAll('script[src]')].filter(script =>
+    new URL(script.getAttribute('src'), 'https://local.test').pathname === '/assets/js/analytics.js');
+  if (analytics.length !== 1 || !analytics[0].closest('head')) {
+    failures.push(`${name}: expected exactly one Analytics initializer in head`);
+  }
+  if (document.querySelector('script[src*="googletagmanager.com"]')) {
+    failures.push(`${name}: load the Google tag through analytics.js so previews stay untracked`);
+  }
+  const directives = new Map((policy || '').split(';').map(value => {
+    const [directive, ...sources] = value.trim().split(/\s+/);
+    return [directive, sources];
+  }));
+  for (const [directive, sources] of [
+    ['script-src', ['https://www.googletagmanager.com']],
+    ['img-src', ['https://www.googletagmanager.com', 'https://*.google-analytics.com']],
+    ['connect-src', ['https://www.googletagmanager.com', 'https://*.google-analytics.com', 'https://*.google.com']]
+  ]) {
+    for (const source of sources) if (!directives.get(directive)?.includes(source)) {
+      failures.push(`${name}: ${directive} must allow ${source} for Analytics`);
+    }
+  }
 }
 for (const name of await readdir('docs/assets/js')) {
   if (name.endsWith('.js')) {
